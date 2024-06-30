@@ -1,0 +1,125 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'com.google.devtools.ksp'
+}
+
+android {
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.scarlet"
+        minSdk 28
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/INDEX.LIST']
+            excludes += ['META-INF/LICENSE.md']
+            excludes += ['META-INF/LICENSE-notice.md']
+        }
+    }
+    namespace 'com.scarlet'
+}
+
+dependencies {
+
+    def androidxCore_version = '1.13.1'
+    implementation "androidx.core:core-ktx:$androidxCore_version"
+    def appCompat_version = '1.7.0'
+    implementation "androidx.appcompat:appcompat:$appCompat_version"
+    def material_version = '1.12.0'
+    implementation "com.google.android.material:material:$material_version"
+    def constraintLayout_version = '2.1.4'
+    implementation "androidx.constraintlayout:constraintlayout:$constraintLayout_version"
+
+    def room_version = '2.6.1'
+    implementation "androidx.room:room-runtime:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
+    ksp "androidx.room:room-compiler:$room_version"
+
+    def retrofit_version = '2.11.0'
+    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
+    implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
+    def okHttp_version = '5.0.0-alpha.14'
+    implementation "com.squareup.okhttp3:logging-interceptor:$okHttp_version"
+
+    def coroutines_version = '1.8.1'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-swing:$coroutines_version"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-swing:$coroutines_version"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"
+
+    // androidx.fragment
+    def androidxFragment_version = '1.8.1'
+    implementation "androidx.fragment:fragment-ktx:$androidxFragment_version"
+
+    // androidx.activity
+    def androidxActivity_version = '1.9.0'
+    implementation "androidx.activity:activity-ktx:$androidxActivity_version"
+
+    // ViewModelScope
+    def androidxArchLifecycle_version = '2.8.2'
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$androidxArchLifecycle_version"
+    // lifecycleScope
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$androidxArchLifecycle_version"
+    // LiveData
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$androidxArchLifecycle_version"
+    ksp "androidx.lifecycle:lifecycle-common-java8:$androidxArchLifecycle_version"
+
+    def junit_version = '4.13.2'
+    testImplementation "junit:junit:$junit_version"
+    androidTestImplementation "junit:junit:$junit_version"
+
+    def mockk_version = '1.13.11'
+    testImplementation "io.mockk:mockk:$mockk_version"
+    androidTestImplementation "io.mockk:mockk-android:$mockk_version"
+
+    def truth_version = '1.4.2'
+    testImplementation "com.google.truth:truth:$truth_version"
+    androidTestImplementation "com.google.truth:truth:$truth_version"
+
+    def hamcrest_version = '2.2'
+    testImplementation "org.hamcrest:hamcrest:$hamcrest_version"
+
+    // AndroidX Test
+    def androidxTestCore_version = '1.6.1'
+    debugImplementation "androidx.test:core-ktx:$androidxTestCore_version"
+
+    //* AndroidJUnit4 runner, Application Provider
+    def androidxTestExtRunner_version = '1.2.1'
+    testImplementation "androidx.test.ext:junit:$androidxTestExtRunner_version"
+    androidTestImplementation "androidx.test.ext:junit:$androidxTestExtRunner_version"
+
+    //* InstantTaskExecutorRule
+    def androidxCoreTesting_version = '2.2.0'
+    testImplementation "androidx.arch.core:core-testing:$androidxCoreTesting_version"
+    androidTestImplementation "androidx.arch.core:core-testing:$androidxCoreTesting_version"
+
+    def logback_version = '1.2.11' // On error, downgrade to 1.2.11 (1.4.5 causes error)
+    implementation "ch.qos.logback:logback-classic:$logback_version"
+
+    def rxKotlin_version = '2.4.0'
+    implementation "io.reactivex.rxjava2:rxkotlin:$rxKotlin_version"
+    def rxAndroid_version = '2.1.1'
+    implementation "io.reactivex.rxjava2:rxandroid:$rxAndroid_version"
+}
