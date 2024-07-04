@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -70,7 +71,7 @@ class CoActivity : AppCompatActivity() {
                 val recipes = apiService.getRecipes()
                 Log.d(TAG, "${spaces(4)}recipes in repeatOnLifeCycle = $recipes")
             }
-            Log.d(TAG, "See when i am printed ...")
+            Log.e(TAG, "See when i am printed ...")
         }.invokeOnCompletion {
             Log.d(TAG, "launch for repeatOnLifeCycle completed: $it")
         }

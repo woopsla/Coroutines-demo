@@ -1,5 +1,6 @@
 package com.scarlet.coroutines.exceptions
 
+import com.scarlet.util.completeStatus
 import com.scarlet.util.log
 import com.scarlet.util.onCompletion
 import kotlinx.coroutines.*
@@ -34,19 +35,49 @@ class CancellationTest {
     @Test
     fun `uncooperative coroutine cannot be cancelled`() = runTest {
         val job = launch {
-            networkRequestUncooperative()
+            try {
+                networkRequestUncooperative()
+            } catch (ex: Exception) {
+                log("Caught: ${ex.javaClass.simpleName}")
+                if (ex is CancellationException) {
+                    throw ex
+                }
+            }
+
+//            log("Am I printed?")
+//
+//            try {
+//                delay(100)
+//            } catch (ex: Exception) {
+//                log("Caught: ${ex.javaClass.simpleName}")
+//                if (ex is CancellationException) {
+//                    throw ex
+//                }
+//            }
+
+            log("Am I printed?, too")
         }.onCompletion("job")
 
         delay(100)
 
         job.cancelAndJoin()
+        job.completeStatus()
     }
 
     @Test
     fun `cooperative coroutine can be canceled`() = runTest {
         val job = launch {
-            networkRequestCooperative()
-        }.onCompletion("job")
+            try {
+                networkRequestCooperative()
+
+                println("Am I printed?")
+            } catch (ex: Exception) {
+                log("Caught: ${ex.javaClass.simpleName}")
+                if (ex is CancellationException) {
+                    throw ex
+                }
+            }
+        }.onCompletion("Job")
 
         delay(100)
 

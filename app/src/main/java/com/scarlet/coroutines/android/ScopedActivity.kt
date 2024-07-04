@@ -27,6 +27,7 @@ class ScopedActivity : AppCompatActivity() {
                         "supervisorScope: isCancelled = ${coroutineContext.job.isCancelled}, cause = $ex"
                     )
                 }
+
                 launch(handler) {
                     Log.i(TAG, "child 1 started")
                     delay(2_000)
@@ -42,11 +43,9 @@ class ScopedActivity : AppCompatActivity() {
                     delay(5_000)
                 }.apply {
                     invokeOnCompletion {
-                        Log.i(TAG, "Child2: isCancelled = $isCancelled, cause = $it")
+                        Log.i(TAG, "Child 2: isCancelled = $isCancelled, cause = $it")
                     }
                 }
-
-                Log.i(TAG, "inside subScope... ")
             }
 
         }.apply {

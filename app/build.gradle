@@ -23,13 +23,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     packagingOptions {
         resources {
             excludes += ['META-INF/INDEX.LIST']
@@ -37,6 +40,7 @@ android {
             excludes += ['META-INF/LICENSE-notice.md']
         }
     }
+
     namespace 'com.scarlet'
 }
 
@@ -94,7 +98,7 @@ dependencies {
     testImplementation "io.mockk:mockk:$mockk_version"
     androidTestImplementation "io.mockk:mockk-android:$mockk_version"
 
-    def truth_version = '1.4.2'
+    def truth_version = '1.4.3'
     testImplementation "com.google.truth:truth:$truth_version"
     androidTestImplementation "com.google.truth:truth:$truth_version"
 

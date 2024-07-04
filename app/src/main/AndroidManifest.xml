@@ -28,10 +28,6 @@
         <activity
             android:name="com.scarlet.coroutines.android.ScopedActivity"
             android:exported="true" />
-
-        <activity
-            android:name="com.scarlet.coroutines.android.livedata.ArticleActivity"
-            android:exported="true" />
     </application>
 
 </manifest>

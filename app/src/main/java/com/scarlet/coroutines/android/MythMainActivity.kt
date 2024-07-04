@@ -87,10 +87,10 @@ class MythMainActivity : AppCompatActivity() {
 
     // Will this help?
     private suspend fun findBigPrime_Wish_To_Be_NonBlocking(): BigInteger =
-        BigInteger.probablePrime(2048, Random())
+        BigInteger.probablePrime(4096, Random())
 
     private suspend fun findBigPrime_ProperWay(): BigInteger = withContext(Dispatchers.Default) {
-        BigInteger.probablePrime(2048, Random())
+        BigInteger.probablePrime(4096, Random())
     }
 }
 
