@@ -4,13 +4,12 @@ import android.annotation.SuppressLint
 import com.scarlet.util.log
 import com.scarlet.util.spaces
 import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
 import kotlinx.coroutines.swing.Swing
 import java.lang.Thread.sleep
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 data class Item(val value: String)
@@ -20,15 +19,11 @@ data class Post(val token: Token, val item: Item)
 @JvmInline
 private value class Data(val value: Int)
 
-fun uiOnMain(block: () -> Unit) {
-    Dispatchers.Swing.asExecutor().execute(block)
-}
-
-private fun CoroutineScope.loop() {
-    launch {
+private fun loop() {
+    thread {
         repeat(5) {
             log("${spaces(10)}Am I running?")
-            delay(500)
+            sleep(500)
         }
     }
 }
@@ -64,32 +59,30 @@ object UsingSyncCall {
     }
 
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
+    fun main(args: Array<String>) {
         loop()
 
         postItem(Item("kiwi"))
-
-        log("Hello from main")
     }
-}
-
-fun <T> background(value: T, msg: String, callback: (T) -> Unit) {
-    val scheduler = Executors.newSingleThreadScheduledExecutor()
-    // simulate network request
-    scheduler.schedule({
-        log(msg)
-        callback(value)
-        scheduler.shutdown()
-    }, 1_000L, TimeUnit.MILLISECONDS)
 }
 
 object UsingCallback {
     private fun requestToken(callback: (Token) -> Unit) {
-        background(Token(42), "Token request is being processed ...", callback)
+        log("Token request is being processed ...")
+
+        thread {
+            sleep(1_000) // simulate network delay
+            callback(Token(42))
+        }
     }
 
     private fun createPost(token: Token, item: Item, callback: (Post) -> Unit) {
-        background(Post(token, item), "Post creation is being processed ...", callback)
+        log("Post creation is being processed ...")
+
+        thread {
+            sleep(1_000) // simulate network delay
+            callback(Post(token, item))
+        }
     }
 
     private fun showPost(post: Post) {
@@ -101,20 +94,16 @@ object UsingCallback {
             log("Token creation done")
             createPost(token, item) { post ->
                 log("Post creation done")
-                uiOnMain {
-                    showPost(post)
-                }
+                showPost(post)
             }
         }
     }
 
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking(Dispatchers.Swing) {
+    fun main(args: Array<String>) {
         loop()
 
         postItem(Item("Kiwi"))
-
-        log("Hello from main")
     }
 }
 
@@ -189,25 +178,21 @@ object AsyncWithCompletableFuture {
         log(post)
     }
 
-    private fun postItem(item: Item) {
-        requestToken()
+    private fun postItem(item: Item): CompletableFuture<Void> {
+        return requestToken()
             .thenCompose { token ->
                 createPost(token, item)
             }
             .thenAccept { post ->
-                uiOnMain {
-                    showPost(post)
-                }
+                showPost(post)
             }
     }
 
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking(Dispatchers.Swing) {
+    fun main(args: Array<String>) {
         loop()
 
-        postItem(Item("Kiwi"))
-
-        log("Hello from main")
+        postItem(Item("Kiwi")).get()
     }
 }
 
@@ -221,22 +206,23 @@ object AsyncWithRx {
         emitter.onComplete()
     }
 
-    private fun createPost(token: Token, item: Item): Observable<Post> = Observable.create { emitter ->
-        log("Post creation is being processed ...")
-        sleep(1_000) // simulate network delay
-        log("Post creation done")
+    private fun createPost(token: Token, item: Item): Observable<Post> =
+        Observable.create { emitter ->
+            log("Post creation is being processed ...")
+            sleep(1_000) // simulate network delay
+            log("Post creation done")
 
-        emitter.onNext(Post(token, item))
-        emitter.onComplete()
-    }
+            emitter.onNext(Post(token, item))
+            emitter.onComplete()
+        }
 
     private fun showPost(post: Post) {
         log(post)
     }
 
     @SuppressLint("CheckResult")
-    fun postItem(item: Item) {
-        requestToken()
+    fun postItem(item: Item): Disposable {
+        return requestToken()
             .flatMap { token ->
                 createPost(token, item)
             }
@@ -249,12 +235,12 @@ object AsyncWithRx {
     }
 
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking(Dispatchers.Swing) {
+    fun main(args: Array<String>) {
         loop()
 
         postItem(Item("Kiwi"))
 
-        log("Hello from main")
+        sleep(2_500)
     }
 }
 
@@ -286,6 +272,15 @@ object AsyncWithCoroutine {
         val token = requestToken()
         val post = createPost(token, item)
         showPost(post)
+    }
+
+    private fun CoroutineScope.loop() {
+        launch {
+            repeat(5) {
+                log("${spaces(10)}Am I running?")
+                delay(500)
+            }
+        }
     }
 
     @JvmStatic
