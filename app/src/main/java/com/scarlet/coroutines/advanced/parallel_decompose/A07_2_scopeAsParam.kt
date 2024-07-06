@@ -8,12 +8,13 @@ import kotlinx.coroutines.*
  * Working solution 1: Pass the parent coroutine scope as Parameter.
  */
 
-@DelicateCoroutinesApi
 object Passing_Coroutine_Scope_As_Parameter_Works_But_Not_Recommended {
+
     private suspend fun loadAndCombine(scope: CoroutineScope, name1: String, name2: String): Image {
         val apple = scope.async { loadImage(name1) }.onCompletion("apple")
         val kiwi = scope.async { loadImage(name2) }.onCompletion("kiwi")
 
+        log("Waiting for two images to combine")
         return combineImages(apple.await(), kiwi.await())
     }
 
@@ -21,9 +22,9 @@ object Passing_Coroutine_Scope_As_Parameter_Works_But_Not_Recommended {
     fun main(args: Array<String>) = runBlocking {
         var image: Image? = null
 
-        val parent = GlobalScope.launch {
+        val parent = launch {
             image = loadAndCombine(this, "apple", "kiwi")
-            log("parent done.")
+            log("parent done: image = $image")
         }.onCompletion("parent")
 
         parent.join()
@@ -34,10 +35,34 @@ object Passing_Coroutine_Scope_As_Parameter_Works_But_Not_Recommended {
 object Parent_Cancellation_When_Passing_Coroutine_Scope_As_Parameter {
 
     private suspend fun loadAndCombine(scope: CoroutineScope, name1: String, name2: String): Image {
-        val apple = scope.async { loadImage(name1) }.onCompletion("apple")
-        val kiwi = scope.async { loadImage(name2) }.onCompletion("kiwi")
+        val apple = scope.async {
+            try {
+                loadImage(name1)
+            } catch (e: Exception) {
+                log("Caught $e in apple")
+                if (e is CancellationException) throw e
+                else Image("Fake apple")
+            }
+        }.onCompletion("apple")
+        val kiwi = scope.async {
+            try {
+                loadImage(name2)
+            } catch (e: Exception) {
+                log("Caught $e in kiwi")
+                if (e is CancellationException) throw e
+                else Image("Fake kiwi")
+            }
+        }.onCompletion("kiwi")
 
-        return combineImages(apple.await(), kiwi.await())
+        log("Waiting for two images to combine")
+        val image = try { // useless
+            combineImages(apple.await(), kiwi.await())
+        } catch (e: Exception) {
+            log("Caught $e in combineImages")
+            if (e is CancellationException) throw e // Comment this line to see the difference
+            Image("Oops")
+        }
+        return Image("Fake Image")
     }
 
     @JvmStatic
@@ -46,12 +71,12 @@ object Parent_Cancellation_When_Passing_Coroutine_Scope_As_Parameter {
 
         val parent = launch {
             image = loadAndCombine(this, "apple", "kiwi")
-            log("Parent done")
+            log("Parent done: image = $image")
         }.onCompletion("parent")
 
         delay(500)
-        log("Cancel parent coroutine after 500ms")
-        parent.cancelAndJoin()
+        parent.cancel(CancellationException("Cancel parent coroutine after 500ms"))
+        parent.join()
 
         log("combined image = $image").also {
             delay(1_000) // To check what happens to children just in case
@@ -59,72 +84,43 @@ object Parent_Cancellation_When_Passing_Coroutine_Scope_As_Parameter {
     }
 }
 
-object Child_Failure_When_Passing_Coroutine_Scope_As_Parameter1 {
+object Child_Failure_When_Passing_Coroutine_Scope_As_Parameter {
 
     private suspend fun loadAndCombine(scope: CoroutineScope, name1: String, name2: String): Image {
         // Are these Root Coroutines because they are created through `scope`?
         // If not root coroutines, exceptions will be thrown inside `async` block, and will propagate.
-        val apple = scope.async { loadImageFail(name1) }.onCompletion("apple")
-        val kiwi = scope.async { loadImage(name2) }.onCompletion("kiwi")
+        // Therefore, try-catch around `await()` is eventually useless.
+        val apple = scope.async {
+            try {
+                loadImageFail(name1)
+            } catch (e: Exception) {
+                log("Caught $e in apple")
+                throw e
+            }
+        }.onCompletion("apple")
+        val kiwi = scope.async {
+            try {
+                loadImage(name2)
+            } catch (e: Exception) {
+                log("Caught $e in kiwi")
+                if (e is CancellationException) throw e
+                else Image("Fake kiwi")
+            }
+        }.onCompletion("kiwi")
 
-        delay(1_000) // Not calling `await`
-        return Image("Fake Image")
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
-        onCompletion("runBlocking")
-        var image: Image? = null
-
-        val parent = launch {
-            image = loadAndCombine(this, "apple", "kiwi")
-            log("Parent done")
-        }.onCompletion("parent")
-
-        parent.join()
-        log("combined image = $image") // <== unreadable!
-    }
-}
-
-object Child_Failure_When_Passing_Coroutine_Scope_As_Parameter2 {
-
-    private suspend fun loadAndCombine(scope: CoroutineScope, name1: String, name2: String): Image {
-        // Since not root coroutines, exception will be thrown inside `async` block, and will propagate.
-        val apple = scope.async { loadImageFail(name1) }.onCompletion("apple")
-        val kiwi = scope.async { loadImage(name2) }.onCompletion("kiwi")
-
-        return combineImages(apple.await(), kiwi.await())
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
-        onCompletion("runBlocking")
-        var image: Image? = null
-
-        val parent = launch {
-            image = loadAndCombine(this, "apple", "kiwi")
-            log("Parent done")
-        }.onCompletion("parent")
-
-        parent.join()
-        log("combined image = $image") // <== unreadable!
-    }
-}
-
-object Child_Failure_When_Passing_Coroutine_Scope_As_Parameter3 {
-
-    private suspend fun loadAndCombine(scope: CoroutineScope, name1: String, name2: String): Image {
-        // If not root coroutines, exception will be thrown inside `async` block, and will propagate.
-        val apple = scope.async { loadImageFail(name1) }.onCompletion("apple")
-        val kiwi = scope.async { loadImage(name2) }.onCompletion("kiwi")
-
-        // Documentation says try-catch is useless here in case of no root coroutines, but it's not.
-        // You should think of it as covered, but not treated as handled ...
-        val image = try { // useless
-            combineImages(apple.await(), kiwi.await())
-        } catch (e: Exception) {
-            log("Caught $e")
-            Image("Oops")
+        log("Waiting for two images to combine")
+        // Documentation says try-catch is useless here in case of non-root coroutines.
+        // However, it is executed anyway.
+        // You'd better think of it as covered, but not treated as handled ... [by Jungsun Kim]
+        val image = try {
+            combineImages(
+                kiwi.await(),
+                apple.await()
+            ) // Exchange apple and kiwi to see the difference
+        } catch (e: Exception) { // eventually useless
+            log("Caught $e in combineImages")
+            if (e is CancellationException) throw e
+            Image("Fake Combined Image")
         }
         return image
     }
@@ -135,39 +131,12 @@ object Child_Failure_When_Passing_Coroutine_Scope_As_Parameter3 {
         var image: Image? = null
 
         val parent = launch {
-            image = loadAndCombine(this, "apple", "kiwi")
-            log("Parent done")
-        }.onCompletion("parent")
-
-        parent.join()
-        log("combined image = $image") // <== unreadable!
-    }
-}
-
-object Child_Failure_When_Passing_Coroutine_Scope_As_Parameter4 {
-
-    private suspend fun loadAndCombine(scope: CoroutineScope, name1: String, name2: String): Image {
-        // If not root coroutines, exception will be thrown inside `async` block, and will propagate.
-        val apple = scope.async { loadImageFail(name1) }.onCompletion("apple")
-        val kiwi = scope.async { loadImage(name2) }.onCompletion("kiwi")
-
-        // Documentation says try-catch is useless here in case of no root coroutines, but it's not.
-        // You should think of it as covered, but not treated as handled ...
-        return combineImages(apple.await(), kiwi.await())
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
-        onCompletion("runBlocking")
-        var image: Image? = null
-
-        val parent = launch {
             try {
                 image = loadAndCombine(this, "apple", "kiwi")
-                log("Parent done")
-            } catch (e: Exception) { // useless
-                log("Caught $e")
-                image = Image("Oops")
+                log("Parent done: image = $image") // is this readable or not?
+            } catch (e: Exception) { // eventually useless
+                log("Caught $e in parent")
+                image = Image("Oops") // useless
             }
         }.onCompletion("parent")
 

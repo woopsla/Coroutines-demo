@@ -10,17 +10,15 @@ import kotlinx.coroutines.*
  * Because the cancellation process is now straightforward, let's ignore it for now.
  */
 
-object Using_supervisorScope_and_when_child_failed1 {
+object Using_supervisorScope {
 
     private suspend fun loadAndCombine(name1: String, name2: String): Image = supervisorScope {
         // Root coroutines
-        val apple = async { loadImageFail(name1) }.onCompletion("apple")
+        val apple = async { loadImage(name1) }.onCompletion("apple")
         val kiwi = async { loadImage(name2) }.onCompletion("kiwi")
 
-        delay(1_000) // Not calling `await`
-
-        // Exception will be thrown when calling `await`
-        Image("Fake Image")
+        log("Waiting for two images to combine")
+        combineImages(apple.await(), kiwi.await())
     }
 
     @JvmStatic
@@ -29,7 +27,35 @@ object Using_supervisorScope_and_when_child_failed1 {
 
         val parent = launch {
             image = loadAndCombine("apple", "kiwi")
-            log("Parent done.")
+            log("Parent done: image = $image")
+        }.onCompletion("parent")
+
+        parent.join()
+        log("combined image = $image")
+    }
+}
+
+object Using_supervisorScope_and_when_child_failed1 {
+
+    private suspend fun loadAndCombine(name1: String, name2: String): Image = supervisorScope {
+        // Root coroutines
+        val apple = async { loadImageFail(name1) }.onCompletion("apple")
+        val kiwi = async { loadImage(name2) }.onCompletion("kiwi")
+
+        // Exception is supposed to be thrown here when calling `await`.
+        // But we are not calling `await` here to see what happens.
+        delay(1_000) // Not calling `await`
+
+        Image("Fake Combined Image")
+    }
+
+    @JvmStatic
+    fun main(args: Array<String>) = runBlocking {
+        var image: Image? = null
+
+        val parent = launch {
+            image = loadAndCombine("apple", "kiwi")
+            log("Parent done: image = $image")
         }.onCompletion("parent")
 
         parent.join()
@@ -44,6 +70,8 @@ object Using_supervisorScope_and_when_child_failed2 {
         val apple = async { loadImageFail(name1) }.onCompletion("apple")
         val kiwi = async { loadImage(name2) }.onCompletion("kiwi")
 
+        log("Waiting for two images to combine")
+
         // Exception will be thrown when calling `await`, and
         // will be rethrown by the supervisorScope unless caught here.
         combineImages(apple.await(), kiwi.await())
@@ -56,7 +84,7 @@ object Using_supervisorScope_and_when_child_failed2 {
 
         val parent = launch {
             image = loadAndCombine("apple", "kiwi")
-            log("Parent done.")
+            log("Parent done: image = $image")
         }.onCompletion("parent")
 
         parent.join()
@@ -71,14 +99,8 @@ object Using_supervisorScope_and_when_child_failed3 {
         val apple = async { loadImageFail(name1) }.onCompletion("apple")
         val kiwi = async { loadImage(name2) }.onCompletion("kiwi")
 
-        // Exception will be thrown when calling `await`, and
-        // will be rethrown by the supervisorScope unless caught here.
-        try {
-            combineImages(apple.await(), kiwi.await())
-        } catch (e: Exception) {
-            log("supervisorScope caught $e")
-            Image("Oops")
-        }
+        log("Waiting for two images to combine")
+        combineImages(apple.await(), kiwi.await())
     }
 
     @JvmStatic
@@ -87,8 +109,13 @@ object Using_supervisorScope_and_when_child_failed3 {
         var image: Image? = null
 
         val parent = launch {
-            image = loadAndCombine("apple", "kiwi")
-            log("Parent done.")
+            try {
+                image = loadAndCombine("apple", "kiwi")
+                log("Parent done: image = $image")
+            } catch (e: Exception) {
+                log("Caught $e in parent")
+                image = Image("Oops")
+            }
         }.onCompletion("parent")
 
         parent.join()
@@ -103,9 +130,16 @@ object Using_supervisorScope_and_when_child_failed4 {
         val apple = async { loadImageFail(name1) }.onCompletion("apple")
         val kiwi = async { loadImage(name2) }.onCompletion("kiwi")
 
-        // Exception will be thrown when calling `await`, and
-        // will be rethrown by the supervisorScope unless caught here.
-        combineImages(apple.await(), kiwi.await())
+        log(
+            "Waiting for two images to combine"
+        )
+        try {
+            combineImages(apple.await(), kiwi.await())
+        } catch (e: Exception) {
+            log("Caught $e in supervisorScope")
+            if (e is CancellationException) throw e
+            else Image("Fake Combined Image")
+        }
     }
 
     @JvmStatic
@@ -114,13 +148,8 @@ object Using_supervisorScope_and_when_child_failed4 {
         var image: Image? = null
 
         val parent = launch {
-            try {
-                image = loadAndCombine("apple", "kiwi")
-                log("Parent done.")
-            } catch (e: Exception) {
-                log("parent caught $e")
-                image = Image("Oops")
-            }
+            image = loadAndCombine("apple", "kiwi")
+            log("Parent done: image = $image")
         }.onCompletion("parent")
 
         parent.join()
