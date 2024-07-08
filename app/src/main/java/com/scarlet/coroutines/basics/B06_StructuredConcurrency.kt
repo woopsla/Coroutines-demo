@@ -48,7 +48,7 @@ object Canceling_parent_coroutine_cancels_the_parent_and_its_children {
             log("\tparent done")
         }
 
-//        parent.join()
+        parent.join()
 //        delay(500)
 //        parent.cancel() // parent.cancelAndJoin()
 

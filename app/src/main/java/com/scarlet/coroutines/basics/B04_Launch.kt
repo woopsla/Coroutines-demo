@@ -30,22 +30,22 @@ object Launch_Demo2 {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        log("0. Start")
+        log("X. Start")
 
         runBlocking {
             launch {
                 delay(1_000)
-                log("2. child 1 done.")
+                log("X. child 1 done.")
             }
             launch {
                 delay(2_000)
-                log("3. child 2 done.")
+                log("X. child 2 done.")
             }
 
-            log("1. end of runBlocking")
+            log("X. end of runBlocking")
         }
 
-        log("4. Done")
+        log("X. Done")
     }
 }
 

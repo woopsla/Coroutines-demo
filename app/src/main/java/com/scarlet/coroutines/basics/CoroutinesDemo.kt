@@ -1,18 +1,19 @@
 package com.scarlet.coroutines.basics
 
+import com.scarlet.util.log
 import com.scarlet.util.spaces
 import kotlinx.coroutines.*
 
 object Generator {
 
     private fun fib(): Sequence<Int> = sequence {
-        var x = 0
-        var y = 1
+        var previous = 0
+        var current = 1
         while (true) {
-            println("${spaces(4)}Generates $x and waiting for next request")
-            yield(x)
-            x = y.also {
-                y += x
+            println("${spaces(4)}Generates $previous and waiting for next request")
+            yield(previous)
+            previous = current.also {
+                current += previous
             }
         }
     }
@@ -34,35 +35,35 @@ object Generator {
 
 object Coroutines_Multitasking {
 
-    private suspend fun coroutine1() {
+    private suspend fun task1() {
         for (i in 1..10) {
-            println("${spaces(4)}Coroutine 1: $i")
+            log("${spaces(4)}Coroutine 1: $i")
             yield()
         }
     }
 
-    private suspend fun coroutine2() {
+    private suspend fun task2() {
         for (i in 1..10) {
-            println("${spaces(8)}Coroutine 2: $i")
+            log("${spaces(8)}Coroutine 2: $i")
             yield()
         }
     }
 
-    private suspend fun coroutine3() {
+    private suspend fun task3() {
         for (i in 1..10) {
-            println("${spaces(12)}Coroutine 3: $i")
+            log("${spaces(12)}Coroutine 3: $i")
             yield()
         }
     }
 
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
-        val job1 = launch { coroutine1() }
-        val job2 = launch { coroutine2() }
-        val job3 = launch { coroutine3() }
+        val coroutine1 = launch { task1() }
+        val coroutine2 = launch { task2() }
+        val coroutine3 = launch { task3() }
 
-        joinAll(job1, job2, job3)
-        println("Done!")
+        joinAll(coroutine1, coroutine2, coroutine3)
+        log("Done!")
     }
 }
 

@@ -20,11 +20,9 @@ data class Post(val token: Token, val item: Item)
 private value class Data(val value: Int)
 
 private fun loop() {
-    thread {
-        repeat(5) {
-            log("${spaces(10)}Am I running?")
-            sleep(500)
-        }
+    repeat(5) {
+        log("${spaces(10)}Am I running?")
+        sleep(500)
     }
 }
 
@@ -60,9 +58,8 @@ object UsingSyncCall {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        loop()
-
         postItem(Item("kiwi"))
+        loop()
     }
 }
 
@@ -101,9 +98,8 @@ object UsingCallback {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        loop()
-
         postItem(Item("Kiwi"))
+        loop()
     }
 }
 
@@ -180,19 +176,18 @@ object AsyncWithCompletableFuture {
 
     private fun postItem(item: Item): CompletableFuture<Void> {
         return requestToken()
-            .thenCompose { token ->
+            .thenComposeAsync { token ->
                 createPost(token, item)
             }
-            .thenAccept { post ->
+            .thenAcceptAsync { post ->
                 showPost(post)
-            }
+            }.handle { _, _ -> null }
     }
 
     @JvmStatic
     fun main(args: Array<String>) {
+        postItem(Item("Kiwi"))
         loop()
-
-        postItem(Item("Kiwi")).get()
     }
 }
 
@@ -229,39 +224,35 @@ object AsyncWithRx {
             .subscribeOn(Schedulers.io())
 //            .observeOn(AndroidSchedulers.mainThread())
             .observeOn(Schedulers.from(Dispatchers.Swing.asExecutor()))
-            .subscribe { post ->
-                showPost(post)
-            }
+            .subscribe(
+                { post -> showPost(post) },
+                { ex -> ex.printStackTrace() },
+            )
     }
 
     @JvmStatic
     fun main(args: Array<String>) {
-        loop()
-
         postItem(Item("Kiwi"))
-
-        sleep(2_500)
+        loop()
     }
 }
 
 object AsyncWithCoroutine {
 
     // Suspending network request code
-    private suspend fun requestToken(): Token = withContext(Dispatchers.IO) {
+    private suspend fun requestToken(): Token {
         log("Token request is being processed ...")
         delay(1_000) // simulate network delay
         log("Token creation done")
-
-        Token(42)
+        return Token(42)
     }
 
     // Suspending network request code
-    private suspend fun createPost(token: Token, item: Item): Post = withContext(Dispatchers.IO) {
+    private suspend fun createPost(token: Token, item: Item): Post {
         log("Post creation is being processed ...")
         delay(1_000) // simulate network delay
         log("Post creation done")
-
-        Post(token, item)
+        return Post(token, item)
     }
 
     private fun showPost(post: Post) {
@@ -274,22 +265,21 @@ object AsyncWithCoroutine {
         showPost(post)
     }
 
-    private fun CoroutineScope.loop() {
-        launch {
-            repeat(5) {
-                log("${spaces(10)}Am I running?")
-                delay(500)
-            }
+    private suspend fun loop() {
+        repeat(5) {
+            log("${spaces(10)}Am I running?")
+            delay(500)
         }
     }
 
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
-        loop()
-
-        postItem(Item("Kiwi"))
-
-        log("Hello from main")
+    fun main(args: Array<String>) = runBlocking<Unit> {
+        launch {
+            postItem(Item("Kiwi"))
+        }
+        launch {
+            loop()
+        }
     }
 
 }

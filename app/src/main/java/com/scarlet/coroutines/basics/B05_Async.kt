@@ -3,6 +3,7 @@ package com.scarlet.coroutines.basics
 import com.scarlet.model.User
 import com.scarlet.util.log
 import kotlinx.coroutines.*
+import kotlin.coroutines.EmptyCoroutineContext
 
 private suspend fun getUser(userId: String): User {
     log("\tinside getUser $userId")
