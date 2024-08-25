@@ -75,10 +75,6 @@ object CvtToSuspendingFunction_Demo1_1 {
         }
 
         // for error case
-        getData(false).also {
-            log("Caught: $it")
-        }
-
         try {
             getData(false)
         } catch (ex: Exception) {

@@ -19,6 +19,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  */
 
 object CoroutineContext_01 {
+    @ExperimentalStdlibApi
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
         log(Thread.currentThread().name)
@@ -26,6 +27,8 @@ object CoroutineContext_01 {
         log("Name              = ${coroutineContext[CoroutineName]}")
         log("Job               = ${coroutineContext[Job]}")
         log("Dispatcher        = ${coroutineContext[ContinuationInterceptor]}")
+        log("Dispatcher        = ${coroutineContext[ContinuationInterceptor] as CoroutineDispatcher}")
+        log("Dispatcher        = ${coroutineContext[CoroutineDispatcher]}")
         log("Exception handler = ${coroutineContext[CoroutineExceptionHandler]}")
     }
 }

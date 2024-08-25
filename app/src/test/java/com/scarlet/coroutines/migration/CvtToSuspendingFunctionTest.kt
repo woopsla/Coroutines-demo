@@ -59,26 +59,6 @@ class CvtToSuspendingFunctionTest {
         })
     }
 
-//    @ExperimentalCoroutinesApi
-//    @Test
-//    fun `Suspending Function - should return valid recipes`() = runTest {
-//        // Arrange (Given)
-//        val slot = slot<Callback<List<Recipe>>>()
-//        every { mockResponse.isSuccessful } returns true
-//        every { mockResponse.body() } returns mRecipes
-//        every { mockCall.enqueue(capture(slot)) } answers {
-//            slot.captured.onResponse(mockCall, mockResponse)
-//        }
-//
-//        val target = CvtToSuspendingFunction_Demo2
-//
-//        // Act (When)
-//        val response = target.searchRecipes("eggs", mockApi, TODO())
-//
-//        // Assert (Then)
-//        assertThat(response).isEqualTo(Resource.Success(mRecipes))
-//    }
-
     @Test
     fun `Suspending Function - should return valid recipes`() = runTest {
         // Arrange (Given)
