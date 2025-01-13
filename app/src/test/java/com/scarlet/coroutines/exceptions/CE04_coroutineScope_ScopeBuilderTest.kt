@@ -25,7 +25,7 @@ class CoroutineScopeBuilderTest {
 
                 launch {
                     delay(100)
-                    throw RuntimeException("oops")
+                    throw RuntimeException("oops(❌)")
                 }.onCompletion("child")
             }
 
@@ -45,7 +45,7 @@ class CoroutineScopeBuilderTest {
 
                 delay(100)
 
-                coroutineContext.cancel()
+                coroutineContext.cancel(CancellationException("Intentional cancellation(\uD83D\uDE4F\uD83C\uDFFC)"))
 //                coroutineContext.cancelChildren()
             }
         } catch (ex: Exception) {
@@ -62,7 +62,7 @@ class CoroutineScopeBuilderTest {
 
                 launch {
                     delay(500)
-                    throw RuntimeException("oops")
+                    throw RuntimeException("oops(❌)")
                 }.onCompletion("child1")
 
                 launch {
@@ -96,7 +96,7 @@ class CoroutineScopeBuilderTest {
 
                     launch {
                         delay(500)
-                        throw RuntimeException("oops")
+                        throw RuntimeException("oops(❌)")
                     }.onCompletion("child1")
 
                     launch {

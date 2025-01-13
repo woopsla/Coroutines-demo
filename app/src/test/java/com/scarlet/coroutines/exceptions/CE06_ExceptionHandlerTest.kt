@@ -12,7 +12,13 @@ import kotlin.time.Duration.Companion.seconds
 class ExceptionHandlerTest {
 
     /**
-     * Coroutine Exception Handlers (CEH) only catches propagated uncaught exceptions.
+     * **Coroutine Exception Handler (CEH)**
+     *
+     * - CEH can handle only _uncaught propagated exceptions_.
+     *      - Only `launch` propagated exceptions are considered.
+     *      - CEH installed in `launch` root coroutines take effect.
+     *      - But, CEH installed in `async` root coroutines _has no effect_ at all!
+     * - CEH should be installed in either _scopes_ or the _root coroutines_.
      */
     private val ehandler = CoroutineExceptionHandler { context, exception ->
         log("Global CEH: Caught $exception, and handles it in: $context")
@@ -29,7 +35,7 @@ class ExceptionHandlerTest {
         scope.launch {
             launch {
                 delay(10_000)
-                throw RuntimeException("oops")
+                throw RuntimeException("oops(❌)")
             }.onCompletion("child1")
 
             launch {
@@ -54,7 +60,7 @@ class ExceptionHandlerTest {
         scope.launch(ehandler) {
             launch {
                 delay(100)
-                throw RuntimeException("oops")
+                throw RuntimeException("oops(❌)")
             }.onCompletion("child1")
 
             launch {
@@ -73,7 +79,7 @@ class ExceptionHandlerTest {
             launch(ehandler) {
                 launch {
                     delay(100)
-                    throw RuntimeException("oops")
+                    throw RuntimeException("oops(❌)")
                 }.onCompletion("child1")
 
                 launch {
@@ -95,7 +101,7 @@ class ExceptionHandlerTest {
             launch(ehandler) {
                 launch {
                     delay(100)
-                    throw RuntimeException("oops")
+                    throw RuntimeException("oops(❌)")
                 }.onCompletion("child1")
 
                 launch { delay(200) }.onCompletion("child2")
@@ -110,7 +116,7 @@ class ExceptionHandlerTest {
         scope.launch {
             launch(ehandler) {
                 delay(100)
-                throw RuntimeException("oops")
+                throw RuntimeException("oops(❌)")
             }.onCompletion("child1")
 
             launch {

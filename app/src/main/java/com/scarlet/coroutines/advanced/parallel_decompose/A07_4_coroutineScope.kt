@@ -35,7 +35,7 @@ object Using_coroutineScope {
     }
 }
 
-object Using_coroutineScope_and_when_child_failed1 {
+object Using_coroutineScope_and_when_child_failed1_not_calling_await {
 
     private suspend fun loadAndCombine(name1: String, name2: String): Image = coroutineScope {
         // Since non-root coroutines, exceptions will be thrown inside `async` block
@@ -63,11 +63,9 @@ object Using_coroutineScope_and_when_child_failed1 {
     }
 }
 
-object Using_coroutineScope_and_when_child_failed2 {
+object Using_coroutineScope_and_when_child_failed2_calling_await {
 
     private suspend fun loadAndCombine(name1: String, name2: String): Image = coroutineScope {
-        // Since non-root coroutines, exceptions will be thrown inside `async` block
-        // even if we are not calling `await`.
         val apple = async { loadImageFail(name1) }.onCompletion("apple")
         val kiwi = async { loadImage(name2) }.onCompletion("kiwi")
 
@@ -90,7 +88,8 @@ object Using_coroutineScope_and_when_child_failed2 {
     }
 }
 
-object Using_coroutineScope_and_when_child_failed3_right_way {
+// Right way to handle exception in child coroutine when using `coroutineScope`.
+object Using_coroutineScope_and_when_child_failed3_catch_outside_coroutineScope {
 
     private suspend fun loadAndCombine(name1: String, name2: String): Image = coroutineScope {
         val apple = async { loadImageFail(name1) }.onCompletion("apple")
@@ -111,6 +110,7 @@ object Using_coroutineScope_and_when_child_failed3_right_way {
                 log("Parent done: image = $image")
             } catch (e: Exception) {
                 log("Caught $e in parent")
+                if (e is CancellationException) throw e
                 image = Image("Oops")
             }
         }.onCompletion("parent")
@@ -120,7 +120,7 @@ object Using_coroutineScope_and_when_child_failed3_right_way {
     }
 }
 
-object Using_coroutineScope_and_when_child_failed4 {
+object Using_coroutineScope_and_when_child_failed4_inside_coroutineScope_wrong_way {
 
     private suspend fun loadAndCombine(name1: String, name2: String): Image = coroutineScope {
         val apple = async { loadImageFail(name1) }.onCompletion("apple")
@@ -129,7 +129,8 @@ object Using_coroutineScope_and_when_child_failed4 {
         try {
             combineImages(apple.await(), kiwi.await())
         } catch (e: Exception) { // useless
-            log("Caught $e in coroutineScope")
+            log("Caught in coroutineScope: $e")
+            if (e is CancellationException) throw e
             Image("Oops")
         }
     }

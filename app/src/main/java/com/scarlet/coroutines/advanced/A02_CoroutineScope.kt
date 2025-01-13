@@ -125,11 +125,11 @@ object GlobalScope_Cancellation_Demo {
 object GlobalScope_Cancellation_Demo2 {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
-        val job = GlobalScope.launch(CoroutineName("Parent")) {
+        val job = GlobalScope.launch(CoroutineName("Parent 1")) {
             log("GlobalScope is active")
             launch(CoroutineName("Child 1")) { delay(1_000) }.onCompletion("Child 1")
             launch(CoroutineName("Child 2")) { delay(1_000) }.onCompletion("Child 2")
-        }.onCompletion("Parent")
+        }.onCompletion("Parent 1")
 
         GlobalScope.launch(CoroutineName("Parent 2")) {
             launch(CoroutineName("Child3")) { delay(1_000) }.onCompletion("Child 3")

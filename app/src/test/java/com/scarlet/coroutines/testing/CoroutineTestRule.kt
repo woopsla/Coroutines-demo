@@ -1,6 +1,7 @@
 package com.scarlet.coroutines.testing
 
 import com.scarlet.util.DispatcherProvider
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
@@ -16,6 +17,13 @@ class CoroutineTestRule(
      * testDispatchersProvider goes here
      */
 //    val testDispatcherProvider: DispatcherProvider = TODO()
+    val testDispatcherProvider: DispatcherProvider = object : DispatcherProvider {
+        override val main: CoroutineDispatcher = testDispatcher
+        override val mainImmediate: CoroutineDispatcher = testDispatcher
+        override val default: CoroutineDispatcher = testDispatcher
+        override val io: CoroutineDispatcher = testDispatcher
+        override val unconfined: CoroutineDispatcher = testDispatcher
+    }
 
     override fun starting(description: Description) {
         super.starting(description)

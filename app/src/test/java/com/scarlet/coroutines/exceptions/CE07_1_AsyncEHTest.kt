@@ -1,28 +1,32 @@
 package com.scarlet.coroutines.exceptions
 
+import com.scarlet.util.completeStatus
 import com.scarlet.util.log
 import com.scarlet.util.onCompletion
+import com.scarlet.util.testDispatcher
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
+import net.bytebuddy.implementation.bind.annotation.Super
 import org.junit.Test
 
 /**
  * **Root Coroutines**
- * - Direct child of scope
- * - Direct child of supervisorScope
+ * - Direct child of `scope`
+ * - Direct child of `supervisorScope`
  * ```
  *                scope           supervisorScope
  *                  |                   |
  *            root coroutine       root coroutine
  *```
- * ⚠️Jungsun's note:
+ * ⚠️**Jungsun Kim's note:**
  * Documentation says the _exposed exception_ will be silently dropped unless
  * `.await()` is called on the deferred value.
  *
  * However, actually it propagates and cancels all siblings and the scope (if `Job()` is used)
- * **without failing the test**.
- * Therefore, structured concurrency still works, but we have a chance to handle
- * exceptions using `try-catch`.
+ * regardless of whether `.await()` is called or not **without failing the test**.
+ * Therefore, structured concurrency works anyhow, but
+ * - we have a chance to handle exceptions using `try-catch`, and
+ * - `runTest` will pass the test if either `.await()` not called, or called within `try-catch`.
  */
 class AsyncEH01Test {
 
@@ -32,7 +36,7 @@ class AsyncEH01Test {
 
         val deferred = async {
             try {
-                throw RuntimeException("my exception")
+                throw RuntimeException("oops(❌)")
             } catch (ex: Exception) {
                 log("Caught: $ex") // caught
             }
@@ -42,8 +46,13 @@ class AsyncEH01Test {
         log("result = ${deferred.await()}")
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////
+    // For Root Coroutines
+    // - Direct child of `scope`
+    ///////////////////////////////////////////////////////////////////////////////////
+
     /**
-     * Even though the exception is caught, it propagates to the parent scope.
+     * Even though a exception is caught, it propagates to the parent scope.
      * The structured concurrency still works.
      * Test passes because the exception is handled and there are no uncaught exceptions.
      */
@@ -52,14 +61,14 @@ class AsyncEH01Test {
         onCompletion("runTest")
 
         // Job or SupervisorJob does matter.
-        val scope = CoroutineScope(Job()).onCompletion("scope")
+        val top = Job();
+        val scope = CoroutineScope(top).onCompletion("scope")
 
-        val deferred: Deferred<Int> = scope.async { // root coroutine
+        val deferred: Deferred<Int> = scope.async(testDispatcher) { // root coroutine
             delay(1_000)
-            throw RuntimeException("Oops!") // exposed exception
+            throw RuntimeException("oops(❌)") // exposed exception
         }.onCompletion("deferred")
 
-        // Uncomment the `try-catch` and see what happens.
         try {
             deferred.await()
         } catch (ex: Exception) {
@@ -74,14 +83,27 @@ class AsyncEH01Test {
         val scope = CoroutineScope(Job()).onCompletion("scope")
 
         // a root coroutine
-        val deferred: Deferred<Int> = scope.async {
+        val deferred: Deferred<Int> = scope.async(testDispatcher) {
             delay(1_000)
-            throw RuntimeException("Oops!") // exposed exception
+            throw RuntimeException("oops(❌)") // exposed exception
         }.onCompletion("deferred")
 
         // No `.await()` called, check whether exception will be silently dropped.
+    }
 
-        deferred.join()
+    @Test
+    fun `direct child of scope - await called without try-catch`() = runTest {
+        onCompletion("runTest")
+
+        val scope = CoroutineScope(Job()).onCompletion("scope")
+
+        // a root coroutine
+        val deferred: Deferred<Int> = scope.async(testDispatcher) {
+            delay(1_000)
+            throw RuntimeException("oops(❌)") // exposed exception
+        }.onCompletion("deferred")
+
+        val result = deferred.await()
     }
 
     @Test
@@ -91,9 +113,9 @@ class AsyncEH01Test {
 
             val scope = CoroutineScope(Job()).onCompletion("scope")
 
-            val parent: Deferred<Int> = scope.async { // root coroutine
+            val parent: Deferred<Int> = scope.async(testDispatcher) { // root coroutine
                 delay(1_000)
-                throw RuntimeException("my exception") // exposed exception
+                throw RuntimeException("oops(❌)") // exposed exception
             }.onCompletion("parent")
 
             val sibling = scope.launch {
@@ -108,8 +130,13 @@ class AsyncEH01Test {
                 log("Caught: $ex")
             }
 
-            sibling.join()
+            joinAll(parent, sibling)
         }
+
+    ///////////////////////////////////////////////////////////////////////////////////
+    // For Root Coroutines
+    // - Direct child of `supervisorScope`
+    ///////////////////////////////////////////////////////////////////////////////////
 
     @Test
     fun `direct child of supervisorScope - catch on await`() =
@@ -122,7 +149,7 @@ class AsyncEH01Test {
                 // `launch` will make test fail, but `async` will not!
                 val deferred = async { // root coroutine
                     delay(100)
-                    throw RuntimeException("my exception") // exposed exception
+                    throw RuntimeException("oops(❌)") // exposed exception
                 }.onCompletion("child")
 
                 launch {
@@ -144,14 +171,13 @@ class AsyncEH01Test {
         runTest {
             onCompletion("runTest")
 
-            // Unlike `launch`, uncaught propagated exceptions do not propagate to parent, so test passes.
             supervisorScope {
                 onCompletion("supervisorScope")
 
                 // `launch` will make test fail, but `async` will not!
                 val deferred = async { // root coroutine
                     delay(100)
-                    throw RuntimeException("my exception") // exposed exception
+                    throw RuntimeException("oops(❌)") // exposed exception
                 }.onCompletion("child")
 
                 launch {
@@ -175,7 +201,7 @@ class AsyncEH01Test {
         val job = scope.launch { // root coroutine
             val deferred: Deferred<Int> = scope.async { // root coroutine, too
                 delay(100)
-                throw RuntimeException("Oops!")
+                throw RuntimeException("oops(❌)")
             }.onCompletion("child")
 
             try {

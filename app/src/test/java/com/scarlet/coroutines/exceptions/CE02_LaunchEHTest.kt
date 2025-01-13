@@ -25,7 +25,7 @@ import java.lang.RuntimeException
 class LaunchEHTest {
 
     private fun failingFunction() {
-        throw RuntimeException("oops")
+        throw RuntimeException("oops(❌)")
     }
 
     @Test(expected = RuntimeException::class)
@@ -46,11 +46,11 @@ class LaunchEHTest {
 
         launch {
             delay(10)
-            throw RuntimeException("yellow")
+            throw RuntimeException("yellow(\uD83C\uDF15)")
         }
         launch {
             delay(50)
-            throw IOException("mellow")
+            throw IOException("mellow(\uD83C\uDF48)")
         }
     }
 
@@ -80,12 +80,13 @@ class LaunchEHTest {
     /**
      * `runBlocking` vs. `runTest`
      *
-     * `runBlocking` do not rethrow uncaught propagated exception reached at scope.
+     * `runBlocking` do not rethrow uncaught exception propagated up to a top-level scope.
      *
      * But, `runTest` do rethrow it.
      */
+
     @Test // Try runBlocking ...
-    fun `Failure of child cancels the parent and its siblings`() = runTest {
+    fun `Failure of child cancels the parent and its siblings1`() = runTest {
         onCompletion("runTest")
 
         // Same behavior even if `SupervisorJob` is used.
@@ -94,7 +95,7 @@ class LaunchEHTest {
         val parentJob = scope.launch {
             launch {
                 delay(100)
-                throw RuntimeException("oops")
+                throw RuntimeException("oops(❌)")
             }.onCompletion("child1")
 
             launch {
@@ -107,14 +108,17 @@ class LaunchEHTest {
         scope.completeStatus("scope")
     }
 
+    /**
+     * But, both rethrows the first uncaught exception reached to its own job.
+     */
     @Test // Try runBlocking ...
-    fun `Failure of child cancels the parent and its siblings2`() = runTest {
+    fun `Failure of child cancels the parent and its siblings2`() = runBlocking {
         onCompletion("runTest")
 
         val parentJob = launch {
             launch {
                 delay(100)
-                throw RuntimeException("oops")
+                throw RuntimeException("oops(❌)")
             }.onCompletion("child1")
 
             launch {

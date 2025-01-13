@@ -10,25 +10,26 @@ import org.junit.Test
 class CancellationTest {
 
     private suspend fun networkRequestCooperative() {
-        log("networkRequestDelayed")
+        log("networkRequestCooperative (\uD83E\uDEF1\uD83C\uDFFC\u200D\uD83E\uDEF2\uD83C\uDFFE)")
         delay(1_000)
-        log("networkRequestDelayed done")
+        log("networkRequestCooperative done (\uD83E\uDEF1\uD83C\uDFFC\u200D\uD83E\uDEF2\uD83C\uDFFE)")
     }
 
     private suspend fun networkRequestFailed() {
-        log("networkRequestFailed")
+        log("networkRequestFailed (❌)")
         delay(1_000)
-        log("throwing exception from networkFailedRequest")
-        throw RuntimeException("Oops...from networkFailedRequest")
+        log("throwing exception from networkRequestFailed (❌)")
+        throw RuntimeException("Oops...from networkRequestFailed (❌)")
     }
 
     private suspend fun networkRequestUncooperative() = coroutineScope {
-        log("networkRequestUncooperative")
-        log("fib(45) = ${fib(45)}")
-        log("networkRequestUncooperative done")
-    }
+        fun fib(n: Long): Long = if (n <= 1) n else fib(n - 1) + fib(n - 2)
 
-    private fun fib(n: Long): Long = if (n <= 1) n else fib(n - 1) + fib(n - 2)
+        log("networkRequestUncooperative (\uD83D\uDD12)")
+        log("I AM BUSY ... NO INTERRUPTIONS PLEASE (⛔)")
+        fib(45) // simulating blocking operation
+        log("networkRequestUncooperative done (\uD83D\uDD12)")
+    }
 
     /**/
 
@@ -44,16 +45,16 @@ class CancellationTest {
                 }
             }
 
-//            log("Am I printed?")
-//
-//            try {
-//                delay(100)
-//            } catch (ex: Exception) {
-//                log("Caught: ${ex.javaClass.simpleName}")
-//                if (ex is CancellationException) {
-//                    throw ex
-//                }
-//            }
+            log("Am I printed?")
+
+            try {
+                delay(100)
+            } catch (ex: Exception) {
+                log("Caught: ${ex.javaClass.simpleName}")
+                if (ex is CancellationException) {
+                    throw ex
+                }
+            }
 
             log("Am I printed?, too")
         }.onCompletion("job")
@@ -100,24 +101,24 @@ class CancellationTest {
      * Check to see what happens when coroutine is cancelled
      *
      * Cancelled coroutine sets its status as `Cancelling`, and executes
-     * rest of the computation (probably call cancel() to child coroutines if exist).
+     * rest of the computation (probably call `cancel()` to child coroutines if exist).
      * If `Cancellation` exception is thrown from any computation, it skips
-     * the rest of the computation immediately!!!!!!!!!!!!!!!!!!!!!!
+     * the rest of the computation _immediately!_.
      */
 
     // DO NOT CATCH CANCELLATION EXCEPTION!! IF YOU HAPPEN TO CATCH IT, RETHROW IT!!
     @Test
     fun `cancellation exception swallowed - so, next suspend function starts running`() = runTest {
         val job = launch {
-            log("Coroutine starts running ... isActive = ${(coroutineContext.isActive)}")
+            log("Coroutine starts running ... isActive = $isActive")
 
             try {
                 networkRequestCooperative()
-            } catch (ex: Exception) {
+            } catch (ex: Exception) { // CATCH ALL EXCEPTIONS including CancellationException
                 log("Caught: ${ex.javaClass.simpleName}")
             }
 
-            log("Coroutine keep running ... isActive = ${(coroutineContext.isActive)}")
+            log("Coroutine keep running ... isActive = $isActive")
             networkRequestUncooperative() // this will not be skipped
         }.onCompletion("job")
 

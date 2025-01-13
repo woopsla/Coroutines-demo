@@ -5,26 +5,28 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-suspend fun foo(): Int {
+suspend fun foo(arg: Int): Double {
     // label 0
-    delay(1_000)
+    var local1 = 1.0
+    var local2 = 2.0
+    val res1 = bar(arg, local1)
     //label 1
-    return 42
+    val res2 = bar(arg + 1, local2 + 1.0)
+    //label 2
+    return res1 + res2
 }
 
-//suspend fun bar(n: Int): List<Int> {
-//    // label 0
-//    val list = mutableListOf(1, 2, 3)
-//    delay(1_000)
-//    // label 1
-//    list.add(n)
-//    return list
-//}
+suspend fun bar(m: Int, n: Double): Double {
+    // label 0
+    delay(1_000)
+    // label 1
+    return m + n
+}
 
 @DelicateCoroutinesApi
 fun main() {
     GlobalScope.launch {
-        val result = foo()
+        val result = foo(1)
         println(result)
     }
     Thread.sleep(2_000)

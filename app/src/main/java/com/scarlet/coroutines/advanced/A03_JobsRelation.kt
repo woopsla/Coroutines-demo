@@ -96,6 +96,7 @@ object In_Hierarchy_Parent_Waits_Until_All_Children_Finish_Another_Demo {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
         val scope = CoroutineScope(Job())
+
         val parentJob = launch {
             log("I’m an adopting parent")
         }.onCompletion("Adopting Parent")

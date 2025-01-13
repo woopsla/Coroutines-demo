@@ -35,31 +35,16 @@ object Passing_Coroutine_Scope_As_Parameter_Works_But_Not_Recommended {
 object Parent_Cancellation_When_Passing_Coroutine_Scope_As_Parameter {
 
     private suspend fun loadAndCombine(scope: CoroutineScope, name1: String, name2: String): Image {
-        val apple = scope.async {
-            try {
-                loadImage(name1)
-            } catch (e: Exception) {
-                log("Caught $e in apple")
-                if (e is CancellationException) throw e
-                else Image("Fake apple")
-            }
-        }.onCompletion("apple")
-        val kiwi = scope.async {
-            try {
-                loadImage(name2)
-            } catch (e: Exception) {
-                log("Caught $e in kiwi")
-                if (e is CancellationException) throw e
-                else Image("Fake kiwi")
-            }
-        }.onCompletion("kiwi")
+        val apple = scope.async { loadImage(name1) }.onCompletion("apple")
+        val kiwi = scope.async { loadImage(name2) }.onCompletion("kiwi")
 
         log("Waiting for two images to combine")
         val image = try { // useless
             combineImages(apple.await(), kiwi.await())
         } catch (e: Exception) {
-            log("Caught $e in combineImages")
-            if (e is CancellationException) throw e // Comment this line to see the difference
+            log("combineImages: Caught $e")
+            // Comment out the line below to see the difference
+            if (e is CancellationException) throw e
             Image("Oops")
         }
         return Image("Fake Image")
@@ -90,35 +75,21 @@ object Child_Failure_When_Passing_Coroutine_Scope_As_Parameter {
         // Are these Root Coroutines because they are created through `scope`?
         // If not root coroutines, exceptions will be thrown inside `async` block, and will propagate.
         // Therefore, try-catch around `await()` is eventually useless.
-        val apple = scope.async {
-            try {
-                loadImageFail(name1)
-            } catch (e: Exception) {
-                log("Caught $e in apple")
-                throw e
-            }
-        }.onCompletion("apple")
-        val kiwi = scope.async {
-            try {
-                loadImage(name2)
-            } catch (e: Exception) {
-                log("Caught $e in kiwi")
-                if (e is CancellationException) throw e
-                else Image("Fake kiwi")
-            }
-        }.onCompletion("kiwi")
+        val apple = scope.async { loadImageFail(name1) }.onCompletion("apple")
+        val kiwi = scope.async { loadImage(name2) }.onCompletion("kiwi")
 
         log("Waiting for two images to combine")
         // Documentation says try-catch is useless here in case of non-root coroutines.
         // However, it is executed anyway.
         // You'd better think of it as covered, but not treated as handled ... [by Jungsun Kim]
         val image = try {
+            // Exchange apple and kiwi to see the difference
             combineImages(
+                apple.await(),
                 kiwi.await(),
-                apple.await()
-            ) // Exchange apple and kiwi to see the difference
+            )
         } catch (e: Exception) { // eventually useless
-            log("Caught $e in combineImages")
+            log("combineImages: Caught $e")
             if (e is CancellationException) throw e
             Image("Fake Combined Image")
         }
@@ -133,9 +104,10 @@ object Child_Failure_When_Passing_Coroutine_Scope_As_Parameter {
         val parent = launch {
             try {
                 image = loadAndCombine(this, "apple", "kiwi")
-                log("Parent done: image = $image") // is this readable or not?
+                log("Parent done: image = $image") // is this reachable or not?
             } catch (e: Exception) { // eventually useless
-                log("Caught $e in parent")
+                log("Caught in parent: $e")
+                if (e is CancellationException) throw e
                 image = Image("Oops") // useless
             }
         }.onCompletion("parent")

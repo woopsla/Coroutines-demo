@@ -63,7 +63,7 @@ class StructuredConcurrencyTest {
     fun `loadAndCombineImages - child fails`() = runTest {
         coEvery { imageService.loadImage(any()) } coAnswers {
             delay(1_000)
-            throw RuntimeException("Oops")
+            throw RuntimeException("oops(❌)")
         } coAndThen {
             delay(2_000)
             Image("image2")
@@ -81,7 +81,7 @@ class StructuredConcurrencyTest {
                     combineImages(deferred1.await(), deferred2.await())
                 }
             } catch (ex: Exception) {
-                log("Caught ex = ${ex.javaClass.simpleName}")
+                log("Caught ex = $ex")
             }
         }.onCompletion("parent").join()
 

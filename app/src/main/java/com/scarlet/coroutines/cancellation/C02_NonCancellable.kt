@@ -56,26 +56,26 @@ object Call_Suspending_Function_in_Cancelling_State_To_Cleanup {
         val job = launch {
             try {
                 delay(200)
-                println("Coroutine finished")
+                log("Coroutine finished")
             } finally {
-                println("Finally")
+                log("Finally")
 
                 // Use `withContext(NonCancellable)`.
                 // DO NOT USE NonCancellable with `launch` or `async`
                 cleanUp()
-                println("Cleanup done")
+                log("Cleanup done")
             }
         }.onCompletion("Job")
 
         delay(100)
         job.cancelAndJoin()
-        println("Cancel done")
+        log("Cancel done")
     }
 
     private suspend fun cleanUp() {
-        println("Cleaning up ...")
+        log("Cleaning up ...")
         delay(2_000)
-        println("Cleaning up ...done")
+        log("Cleaning up ...done")
     }
 }
 

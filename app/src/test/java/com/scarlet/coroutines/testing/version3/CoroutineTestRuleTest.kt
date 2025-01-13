@@ -55,7 +55,7 @@ class CoroutineTestRuleTest {
     }
 
     @Test
-    fun `test fun creating new coroutines`() = runTest(testDispatcher) {
+    fun `test fun creating new coroutines`() = runTest {
         // Given
         viewModel = ArticleViewModel(apiService)
 

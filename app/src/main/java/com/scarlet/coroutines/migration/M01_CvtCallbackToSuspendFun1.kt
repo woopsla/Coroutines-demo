@@ -49,14 +49,20 @@ object CvtToSuspendingFunction_Demo1 {
     fun main(args: Array<String>) = runBlocking<Unit> {
 
         // for success case
-        getData(true).also {
-            log("Data received: $it")
+        try {
+            getData(true).also {
+                log("Data received: $it")
+            }
+        } catch (ex: Exception) {
+            log("Caught ${ex.javaClass.simpleName}")
         }
 
         // for error case
-        getData(false).also {
-            log("Caught: $it")
-        }
+        runCatching { getData(false) }
+            .onSuccess { log("Data received: $it") }
+            .onFailure {
+                log("Caught ${it.javaClass.simpleName}")
+            }
     }
 }
 
@@ -70,15 +76,19 @@ object CvtToSuspendingFunction_Demo1_1 {
     fun main(args: Array<String>) = runBlocking<Unit> {
 
         // for success case
-        getData(true).also {
-            log("Data received: $it")
-        }
-
-        // for error case
         try {
-            getData(false)
+            getData(true).also {
+                log("Data received: $it")
+            }
         } catch (ex: Exception) {
             log("Caught ${ex.javaClass.simpleName}")
         }
+
+        // for error case
+        runCatching { getData(false) }
+            .onSuccess { log("Data received: $it") }
+            .onFailure {
+                log("Caught ${it.javaClass.simpleName}")
+            }
     }
 }

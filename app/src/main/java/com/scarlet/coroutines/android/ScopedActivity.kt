@@ -28,7 +28,8 @@ class ScopedActivity : AppCompatActivity() {
                     )
                 }
 
-                launch(handler) {
+                // Install the custom handler here ...
+                launch {
                     Log.i(TAG, "child 1 started")
                     delay(2_000)
                     throw RuntimeException("OOPS!")

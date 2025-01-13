@@ -11,12 +11,12 @@ import java.lang.RuntimeException
 class SupervisorScopeBuilderTest {
 
     /**
-     * `supervisorScope` has a `SupervisorJob()` and acts as a parent to root coroutines.
+     * `supervisorScope` has a `SupervisorJob()` and acts as a parent of root coroutines.
      *
-     * (Wrong!!!!)
      * `supervisorScope` does not rethrow an uncaught exception, but propagates it instead!!
+     * (⚠️Beware: Applies only to propagated exception!!!! - Jungsun's note)
      *
-     * Failure of a child coroutine does not propagate(?) to its parent.
+     * Failure of a child coroutine does not propagate(?) to its parent. <== Seems like it does propagate.
      *
      * (⚠️Jungsun's note:
      * Actually, it does propagate to its parent. But, it does "not" cancel its parent. <== _Strange!!_)
@@ -26,7 +26,7 @@ class SupervisorScopeBuilderTest {
      * for an installed exception handler. If it can't find any, it fails.
      *
      * ⚠️Important Note: Exceptions not propagated from child coroutines do not propagate,
-     * (i.e., exceptions thrown supervisorScope body) they are rethrown instead unless it
+     * (i.e., exceptions thrown `supervisorScope` body) they are rethrown instead unless it
      * is caught on-site.
      *
      * Recommendation by Jungsun: Always install a CEH when using `supervisorScope`.
@@ -44,7 +44,7 @@ class SupervisorScopeBuilderTest {
 
                     launch {
                         delay(100)
-                        throw RuntimeException("oops")
+                        throw RuntimeException("oops(❌)")
                     }.onCompletion("child1")
                 }
                 log("parent: Hey, I'm still alive!")
@@ -54,14 +54,14 @@ class SupervisorScopeBuilderTest {
     @Test
     fun `supervisorScope propagates propagated uncaught exceptions - runTest`() = runTest {
         // `supervisorScope` calls installed CEH at TestScope, which prints the stack trace.
-        // and `runTest` rethrows first uncaught exception */
+        // and `runTest` rethrows any first uncaught exception */
         launch {
             supervisorScope {
                 onCompletion("supervisorScope")
 
                 launch {
                     delay(100)
-                    throw RuntimeException("oops")
+                    throw RuntimeException("oops(❌)")
                 }.onCompletion("child1")
             }
             log("Hey, I'm still alive!")
@@ -79,7 +79,7 @@ class SupervisorScopeBuilderTest {
 
                     val child = launch {
                         delay(500)
-                        throw RuntimeException("oops")
+                        throw RuntimeException("oops(❌)")
                     }.onCompletion("child")
 
                     child.join()
@@ -96,7 +96,7 @@ class SupervisorScopeBuilderTest {
 
             launch {
                 delay(100)
-                throw RuntimeException("oops")
+                throw RuntimeException("oops(❌)")
             }.onCompletion("child1")
 
             launch {
@@ -117,7 +117,7 @@ class SupervisorScopeBuilderTest {
                 }.onCompletion("child")
 
                 delay(100)
-                throw RuntimeException("Oops")
+                throw RuntimeException("Oops(❌)")
             }
 
         } catch (ex: Exception) {
@@ -137,11 +137,14 @@ class SupervisorScopeBuilderTest {
 
                 delay(100)
 
-                cancel()
+                coroutineContext.cancel(CancellationException("Intentional cancellation(\uD83D\uDE4F\uD83C\uDFFC)"))
 //                coroutineContext.cancelChildren()
             }
         } catch (ex: Exception) {
             log("Caught: $ex")
+            if (ex is CancellationException) {
+                throw ex
+            }
         }
     }
 
@@ -156,7 +159,7 @@ class SupervisorScopeBuilderTest {
             onCompletion("supervisorScope")
 
             scope.launch {
-                launch { delay(100); throw RuntimeException("oops") }.onCompletion("child1")
+                launch { delay(100); throw RuntimeException("oops(❌)") }.onCompletion("child1")
                 launch { delay(200) }.onCompletion("child2")
             }.onCompletion("parent job")
                 .join()  // why do we need this?
@@ -173,7 +176,7 @@ class SupervisorScopeBuilderTest {
             onCompletion("supervisorScope")
 
             supervisorScope {
-                launch { delay(100); throw RuntimeException("oops") }.onCompletion("child1")
+                launch { delay(100); throw RuntimeException("oops(❌)") }.onCompletion("child1")
                 launch { delay(200) }.onCompletion("child2")
             }
         }.onCompletion("parent job").join()

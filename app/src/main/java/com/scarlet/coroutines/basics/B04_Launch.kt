@@ -3,6 +3,7 @@ package com.scarlet.coroutines.basics
 import com.scarlet.model.User
 import com.scarlet.util.log
 import kotlinx.coroutines.*
+import kotlinx.coroutines.delay
 
 private suspend fun save(user: User) {
     delay(1_000) // simulate some delay

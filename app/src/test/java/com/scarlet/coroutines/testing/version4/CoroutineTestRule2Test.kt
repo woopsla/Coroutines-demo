@@ -23,7 +23,7 @@ import org.junit.Test
  */
 
 @ExperimentalCoroutinesApi
-class CoroutineTestRuleTest {
+class CoroutineTestRule2Test {
 
     @get:Rule
     val rule = InstantTaskExecutorRule()
@@ -37,7 +37,7 @@ class CoroutineTestRuleTest {
     private lateinit var apiService: ApiService
 
     // SUT
-    private lateinit var viewModel: ArticleViewModel
+    private lateinit var viewModel: ArticleViewModel2
 
     @Before
     fun init() {
@@ -52,7 +52,7 @@ class CoroutineTestRuleTest {
     @Test
     fun `test fun creating new coroutines`() = runTest {
         // Given
-        viewModel = ArticleViewModel(apiService /* TODO */)
+        viewModel = ArticleViewModel2(apiService, coroutineRule.testDispatcherProvider)
 
         // When
         viewModel.onButtonClicked()

@@ -1,5 +1,6 @@
 package com.scarlet.coroutines.exceptions
 
+import com.scarlet.util.log
 import com.scarlet.util.onCompletion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,10 +19,10 @@ class CoroutineScopeFunctionsTest {
                 onCompletion("withContext")
 
                 delay(1_000)
-                throw RuntimeException("Exception in withContext")
+                throw RuntimeException("Exception in withContext(❌)")
             }
         } catch (e: Exception) {
-            println("Caught $e")
+            log("Caught $e")
         }
     }
 
@@ -34,12 +35,12 @@ class CoroutineScopeFunctionsTest {
                 delay(1_000)
                 launch {
                     delay(1_000)
-                    throw RuntimeException("Exception in withContext")
+                    throw RuntimeException("Exception in withContext(❌)")
 
                 }.onCompletion("child")
             }
         } catch (e: Exception) {
-            println("Caught $e")
+            log("Caught $e")
         }
     }
 }

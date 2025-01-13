@@ -29,7 +29,7 @@ class LaunchSupervisorJobTest {
 
         val child1 = scope.launch {
             delay(100)
-            throw RuntimeException("oops")
+            throw RuntimeException("oops(❌)")
         }.onCompletion("child1")
 
         val child2 = scope.launch {
@@ -42,7 +42,7 @@ class LaunchSupervisorJobTest {
 
 
     /**
-     * Quiz: Who's child1's parent?
+     * Quiz: Who's child1's parent? SupervisorJob or Job?
      */
     @Test
     fun `lecture note example - who's child1's parent`() = runTest {
@@ -51,7 +51,7 @@ class LaunchSupervisorJobTest {
         val parentJob = launch(SupervisorJob()) {
             launch {
                 delay(100)
-                throw IOException("failure")
+                throw IOException("failure(❌)")
             }.onCompletion("child1")
 
             launch {
@@ -76,7 +76,7 @@ class LaunchSupervisorJobTest {
 
         val child1 = scope.launch(sharedJob) {
             delay(100)
-            throw RuntimeException("oops")
+            throw RuntimeException("oops(❌)")
         }.onCompletion("child1")
 
         val child2 = scope.launch(sharedJob) {

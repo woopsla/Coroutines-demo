@@ -35,7 +35,7 @@ object Using_supervisorScope {
     }
 }
 
-object Using_supervisorScope_and_when_child_failed1 {
+object Using_supervisorScope_and_when_child_failed1_not_calling_await {
 
     private suspend fun loadAndCombine(name1: String, name2: String): Image = supervisorScope {
         // Root coroutines
@@ -63,7 +63,7 @@ object Using_supervisorScope_and_when_child_failed1 {
     }
 }
 
-object Using_supervisorScope_and_when_child_failed2 {
+object Using_supervisorScope_and_when_child_failed2_calling_await {
 
     private suspend fun loadAndCombine(name1: String, name2: String): Image = supervisorScope {
         // Root coroutines
@@ -92,7 +92,7 @@ object Using_supervisorScope_and_when_child_failed2 {
     }
 }
 
-object Using_supervisorScope_and_when_child_failed3 {
+object Using_supervisorScope_and_when_child_failed3_catch_outside_supervisorScope {
 
     private suspend fun loadAndCombine(name1: String, name2: String): Image = supervisorScope {
         // Root coroutines
@@ -114,6 +114,7 @@ object Using_supervisorScope_and_when_child_failed3 {
                 log("Parent done: image = $image")
             } catch (e: Exception) {
                 log("Caught $e in parent")
+                if (e is CancellationException) throw e
                 image = Image("Oops")
             }
         }.onCompletion("parent")
@@ -123,7 +124,7 @@ object Using_supervisorScope_and_when_child_failed3 {
     }
 }
 
-object Using_supervisorScope_and_when_child_failed4 {
+object Using_supervisorScope_and_when_child_failed4_catch_inside_supervisorScope {
 
     private suspend fun loadAndCombine(name1: String, name2: String): Image = supervisorScope {
         // Root coroutines

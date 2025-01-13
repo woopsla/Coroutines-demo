@@ -13,6 +13,10 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 
+/**
+ * TODO: Inject a test dispatcher to ViewModel.
+ */
+
 @ExperimentalCoroutinesApi
 class ArticleViewModelTest {
 

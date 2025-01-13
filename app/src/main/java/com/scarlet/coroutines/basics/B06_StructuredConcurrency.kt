@@ -76,7 +76,7 @@ object Canceling_a_child_cancels_only_the_child {
             }
 
             log("\tparent is waiting")
-            joinAll(child1!!, child2)
+            joinAll(child1, child2)
             log("\tparent done")
         }
 
