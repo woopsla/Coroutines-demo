@@ -13,31 +13,25 @@ class SupervisorScopeBuilderTest {
     /**
      * `supervisorScope` has a `SupervisorJob()` and acts as a parent of root coroutines.
      *
-     * `supervisorScope` does not rethrow an uncaught exception, but propagates it instead!!
-     * (⚠️Beware: Applies only to propagated exception!!!! - Jungsun's note)
+     * Unlike `coroutineScope`, `supervisorScope` does not rethrow an uncaught exception.
+     * - Failure of a child coroutine does not propagate to its parent.
      *
-     * Failure of a child coroutine does not propagate(?) to its parent. <== Seems like it does propagate.
+     * In App, `supervisorScope` needs an installed `CoroutineExceptionHandler` in
+     * its root coroutines, otherwise the `supervisorScope` will fail anyway causing crash.
+     * That's because a scope always looks for an installed exception handler. If it
+     * can't find any, it fails (by calling current thread's `Thread.uncaughtExceptionHandler`).
+     * - **Recommendation** by Jungsun: Always install a CEH when using `supervisorScope`.
      *
-     * (⚠️Jungsun's note:
-     * Actually, it does propagate to its parent. But, it does "not" cancel its parent. <== _Strange!!_)
-     *
-     * This feature requires an installed `CoroutineExceptionHandler` in its root coroutines,
-     * otherwise the `supervisorScope` will fail anyway. That's because a scope always looks
-     * for an installed exception handler. If it can't find any, it fails.
-     *
-     * ⚠️Important Note: Exceptions not propagated from child coroutines do not propagate,
-     * (i.e., exceptions thrown `supervisorScope` body) they are rethrown instead unless it
-     * is caught on-site.
-     *
-     * Recommendation by Jungsun: Always install a CEH when using `supervisorScope`.
+     * ⚠️**Important Note**: Exceptions not propagated from child coroutines (i.e.,
+     * exceptions thrown `supervisorScope` body) are rethrown unless caught on-site.
      */
 
+    // `supervisorScope` may call default CEH, which prints the stack trace.
+    // In App, the default CEH crashes the App.
+    // `runBlocking` regards this as the exception as handled and test pass.
     @Test
-    fun `supervisorScope propagates uncaught propagated exceptions - runBlocking`() =
+    fun `supervisorScope does not propagate exceptions - runBlocking`() =
         runBlocking<Unit> {
-            // `supervisorScope` may call default CEH, which prints the stack trace.
-            // In App, the default CEH crashes the App.
-            // `runBlocking` regards this as the exception as handled and test pass.
             launch {
                 supervisorScope {
                     onCompletion("supervisorScope")
@@ -46,15 +40,18 @@ class SupervisorScopeBuilderTest {
                         delay(100)
                         throw RuntimeException("oops(❌)")
                     }.onCompletion("child1")
+
+                    launch {
+                        delay(200)
+                    }.onCompletion("child2")
                 }
                 log("parent: Hey, I'm still alive!")
             }.onCompletion("parent")
         }
 
+    // `runTest` rethrows any first uncaught exception at the end of the test.
     @Test
-    fun `supervisorScope propagates propagated uncaught exceptions - runTest`() = runTest {
-        // `supervisorScope` calls installed CEH at TestScope, which prints the stack trace.
-        // and `runTest` rethrows any first uncaught exception */
+    fun `supervisorScope does not propagate uncaught exceptions - runTest`() = runTest {
         launch {
             supervisorScope {
                 onCompletion("supervisorScope")
@@ -63,6 +60,10 @@ class SupervisorScopeBuilderTest {
                     delay(100)
                     throw RuntimeException("oops(❌)")
                 }.onCompletion("child1")
+
+                launch {
+                    delay(200)
+                }.onCompletion("child2")
             }
             log("Hey, I'm still alive!")
         }.onCompletion("parent")
@@ -184,3 +185,4 @@ class SupervisorScopeBuilderTest {
         scope.completeStatus("scope")
     }
 }
+

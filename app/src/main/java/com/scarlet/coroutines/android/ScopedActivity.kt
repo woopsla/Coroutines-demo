@@ -32,6 +32,7 @@ class ScopedActivity : AppCompatActivity() {
                 launch {
                     Log.i(TAG, "child 1 started")
                     delay(2_000)
+                    Log.i(TAG, "child 1: I'm about to throwing exception")
                     throw RuntimeException("OOPS!")
                 }.apply {
                     invokeOnCompletion {

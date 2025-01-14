@@ -3,8 +3,6 @@ package com.scarlet.coroutines.basics
 import com.scarlet.util.log
 import com.scarlet.util.spaces
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.produce
 
 object Coroutines_Multitasking {
 
@@ -40,43 +38,6 @@ object Coroutines_Multitasking {
     }
 }
 
-object Generator {
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun CoroutineScope.generator(commandChannel: Channel<String>) = produce {
-        var prev = 0
-        var current = 1
-
-        while (true) {
-            println("Generator: Waiting for next request ...")
-            commandChannel.receive() // wait for next
-            println("Generator: Sending $prev")
-            send(prev)
-            prev = current.also {
-                current += prev
-            }
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
-        val commandChannel = Channel<String>()
-
-        val receiveChannel = generator(commandChannel)
-
-        for (i in 1..10) {
-            commandChannel.send("next")
-            receiveChannel.receive().also { gen ->
-                println("Got result = $gen")
-            }
-            delay(1_000);
-        }
-
-        receiveChannel.cancel()
-    }
-}
-
 object GeneratorUsingSequence {
 
     private fun fib(): Sequence<Int> = sequence {
@@ -105,4 +66,3 @@ object GeneratorUsingSequence {
         }
     }
 }
-

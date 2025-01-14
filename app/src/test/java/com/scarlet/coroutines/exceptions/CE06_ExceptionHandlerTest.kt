@@ -19,8 +19,9 @@ class ExceptionHandlerTest {
      *      - CEH installed in `launch` root coroutines take effect.
      *      - But, CEH installed in `async` root coroutines _has no effect_ at all!
      * - CEH should be installed in either _scopes_ or the _root coroutines_.
+     *      - The exception is handled by the parent only when all its children terminate.
      */
-    private val ehandler = CoroutineExceptionHandler { context, exception ->
+    private val handler = CoroutineExceptionHandler { context, exception ->
         log("Global CEH: Caught $exception, and handles it in: $context")
     }
 
@@ -28,18 +29,19 @@ class ExceptionHandlerTest {
      * Coroutine Exception Handlers installed at scope
      */
 
-    @Test // DEFAULT_TIMEOUT = 10.seconds
-    fun `CEH at the scope`() = runTest(timeout = 15.seconds) {
-        val scope = CoroutineScope(Job() + ehandler)
+    // What happen to top-level scope's Job?
+    @Test
+    fun `CEH at the scope`() = runTest {
+        val scope = CoroutineScope(Job() + handler)
 
         scope.launch {
             launch {
-                delay(10_000)
+                delay(100)
                 throw RuntimeException("oops(❌)")
             }.onCompletion("child1")
 
             launch {
-                delay(20_000)
+                delay(200)
             }.onCompletion("child2")
             // Will child2 be cancelled? - What is the take-away from this fact?
 
@@ -53,11 +55,10 @@ class ExceptionHandlerTest {
      */
 
     @Test
-    // Why top-level scope cancelled?
     fun `CEH at the root coroutine - child of scope`() = runTest {
-        val scope = CoroutineScope(Job())
+        val scope = CoroutineScope(Job()).onCompletion("scope")
 
-        scope.launch(ehandler) {
+        scope.launch(handler) {
             launch {
                 delay(100)
                 throw RuntimeException("oops(❌)")
@@ -67,8 +68,6 @@ class ExceptionHandlerTest {
                 delay(200)
             }.onCompletion("child2")
         }.onCompletion("parent").join()
-
-        scope.completeStatus("scope") // Is scope cancelled?
     }
 
     @Test
@@ -76,7 +75,7 @@ class ExceptionHandlerTest {
         supervisorScope {
             completeStatus("supervisorScope")
 
-            launch(ehandler) {
+            launch(handler) {
                 launch {
                     delay(100)
                     throw RuntimeException("oops(❌)")
@@ -98,7 +97,7 @@ class ExceptionHandlerTest {
         coroutineScope {
             completeStatus("coroutineScope")
 
-            launch(ehandler) {
+            launch(handler) {
                 launch {
                     delay(100)
                     throw RuntimeException("oops(❌)")
@@ -114,7 +113,7 @@ class ExceptionHandlerTest {
         val scope = CoroutineScope(Job())
 
         scope.launch {
-            launch(ehandler) {
+            launch(handler) {
                 delay(100)
                 throw RuntimeException("oops(❌)")
             }.onCompletion("child1")
@@ -125,6 +124,51 @@ class ExceptionHandlerTest {
         }.onCompletion("parent").join()
 
         scope.completeStatus("scope") // Is scope cancelled?
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // CEH & supervisorScope - Quiz: Select two places where CEH is of no use.
+    ///////////////////////////////////////////////////////////////////////////
+    private val handler1 = CoroutineExceptionHandler { context, exception ->
+        log("1. Global CEH: Caught $exception, and handles it in: $context")
+    }
+    private val handler2 = CoroutineExceptionHandler { context, exception ->
+        log("2. Global CEH: Caught $exception, and handles it in: $context")
+    }
+    private val handler3 = CoroutineExceptionHandler { context, exception ->
+        log("3. Global CEH: Caught $exception, and handles it in: $context")
+    }
+    private val handler4 = CoroutineExceptionHandler { context, exception ->
+        log("4. Global CEH: Caught $exception, and handles it in: $context")
+    }
+    private val handler5 = CoroutineExceptionHandler { context, exception ->
+        log("5. Global CEH: Caught $exception, and handles it in: $context")
+    }
+
+    @Test
+    fun `CEH and supervisorScope - quiz`() = runTest {
+        val scope = CoroutineScope(Job() + handler1).onCompletion("top-level scope")
+
+        scope.launch(handler2) {
+            supervisorScope {
+                onCompletion("supervisorScope")
+
+                launch(handler3) {
+                    launch(handler4) {// suspicious location
+                        supervisorScope {
+                            onCompletion("child supervisorScope")
+
+                            launch(handler5) {
+                                launch(handler) {
+                                    delay(100); log("I am failing..."); throw RuntimeException("oops(❌)")
+                                }.onCompletion("child1")
+                                launch(handler) { delay(200) }.onCompletion("child2")
+                            }.onCompletion("child supervisorScope's child")
+                        }
+                    }.onCompletion("supervisorScope's child's child")
+                }.onCompletion("supervisorScope job's child")
+            }
+        }.onCompletion("top-level job").join()
     }
 }
 

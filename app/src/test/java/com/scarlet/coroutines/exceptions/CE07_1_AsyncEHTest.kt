@@ -1,12 +1,11 @@
 package com.scarlet.coroutines.exceptions
 
-import com.scarlet.util.completeStatus
 import com.scarlet.util.log
 import com.scarlet.util.onCompletion
 import com.scarlet.util.testDispatcher
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.runTest
-import net.bytebuddy.implementation.bind.annotation.Super
 import org.junit.Test
 
 /**
@@ -61,8 +60,7 @@ class AsyncEH01Test {
         onCompletion("runTest")
 
         // Job or SupervisorJob does matter.
-        val top = Job();
-        val scope = CoroutineScope(top).onCompletion("scope")
+        val scope = CoroutineScope(SupervisorJob()).onCompletion("scope")
 
         val deferred: Deferred<Int> = scope.async(testDispatcher) { // root coroutine
             delay(1_000)
@@ -74,6 +72,8 @@ class AsyncEH01Test {
         } catch (ex: Exception) {
             log("Caught: $ex") // Caught and handled
         }
+
+//        scope.completeStatus("scope") // Why do we need this?
     }
 
     @Test
@@ -113,7 +113,7 @@ class AsyncEH01Test {
 
             val scope = CoroutineScope(Job()).onCompletion("scope")
 
-            val parent: Deferred<Int> = scope.async(testDispatcher) { // root coroutine
+            val parent: Deferred<Int> = scope.async { // root coroutine
                 delay(1_000)
                 throw RuntimeException("oops(❌)") // exposed exception
             }.onCompletion("parent")

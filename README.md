@@ -43,9 +43,7 @@
 
 ### Coroutine Advanced Topics
 
-- [coroutines/advanced/UnderTheHood1.kt](app/src/main/java/com/scarlet/coroutines/advanced/UnderTheHood1.kt)
-- [coroutines/advanced/UnderTheHood2.kt](app/src/main/java/com/scarlet/coroutines/advanced/UnderTheHood2.kt)
-
+- [coroutines/advanced/UnderTheHood.kt](app/src/main/java/com/scarlet/coroutines/advanced/UnderTheHood.kt)
 
 - [coroutines/advanced/A00_SuspendOrigin.kt](app/src/main/java/com/scarlet/coroutines/advanced/A00_SuspendOrigin.kt)
 - [coroutines/advanced/A01_Context.kt](app/src/main/java/com/scarlet/coroutines/advanced/A01_Context.kt)
