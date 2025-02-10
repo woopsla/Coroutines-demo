@@ -43,7 +43,7 @@ class VirtualTimeControlTest {
     }
 
     @Test
-    fun `runCurrent & advanceUntilIdle demo`() = runTest {
+    fun `runCurrent & advanceUntilIdle demo`() = runTest(UnconfinedTestDispatcher()) {
         var state = 0
 
         launch {
@@ -104,38 +104,6 @@ class VirtualTimeControlTest {
             assertThat(state).isEqualTo(1) // 0 or 1?
             log("$currentTime")
         }
-
-
-//    @Test
-//    fun `test virtual time control - runBlockingTest`() = runBlockingTest {
-//        var count = 0
-//
-//        launch {
-//            log("child start")
-//            delay(1_000)
-//            count = 1
-//            delay(1_000)
-//            count = 3
-//            delay(1_000)
-//            count = 5
-//            log("child end")
-//        }
-//
-//        assertThat(count).isEqualTo(0)
-//        log("$currentTime")
-//
-//        advanceTimeBy(1_000)
-//        log("$currentTime")
-//        assertThat(count).isEqualTo(1)
-//
-//        advanceTimeBy(1_000)
-//        log("$currentTime")
-//        assertThat(count).isEqualTo(3)
-//
-//        advanceTimeBy(999) // 999
-//        log("$currentTime")
-//        assertThat(count).isEqualTo(3)
-//    }
 
     @Test
     fun `paused and resume dispatcher - realistic example`() = runTest {

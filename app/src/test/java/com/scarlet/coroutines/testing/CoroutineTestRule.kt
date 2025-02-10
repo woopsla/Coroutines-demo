@@ -17,13 +17,6 @@ class CoroutineTestRule(
      * testDispatchersProvider goes here
      */
 //    val testDispatcherProvider: DispatcherProvider = TODO()
-    val testDispatcherProvider: DispatcherProvider = object : DispatcherProvider {
-        override val main: CoroutineDispatcher = testDispatcher
-        override val mainImmediate: CoroutineDispatcher = testDispatcher
-        override val default: CoroutineDispatcher = testDispatcher
-        override val io: CoroutineDispatcher = testDispatcher
-        override val unconfined: CoroutineDispatcher = testDispatcher
-    }
 
     override fun starting(description: Description) {
         super.starting(description)

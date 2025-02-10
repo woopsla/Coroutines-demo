@@ -1,6 +1,7 @@
 package com.scarlet.coroutines.advanced
 
 import com.scarlet.util.coroutineInfo
+import com.scarlet.util.delim
 import com.scarlet.util.log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers
@@ -177,6 +178,17 @@ object Custom_Dispatchers_Demo {
  * Homework: Please check `limitedParallelism` function for yourself.
  * https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-dispatcher/limited-parallelism.html
  *
- *  @ExperimentalCoroutinesApi
  *  fun limitedParallelism(parallelism: Int): CoroutineDispatcher
  */
+object limitedParallelism_Demo {
+    @JvmStatic
+    fun main(args: Array<String>) = runBlocking {
+        val limitedDispatcher = Dispatchers.IO.limitedParallelism(4)
+
+        repeat(20) {
+            launch(limitedDispatcher) {
+                log("Running on thread: ${Thread.currentThread().name}")
+            }
+        }
+    }
+}

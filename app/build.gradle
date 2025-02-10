@@ -79,7 +79,7 @@ dependencies {
     implementation "androidx.fragment:fragment-ktx:$androidxFragment_version"
 
     // androidx.activity
-    def androidxActivity_version = '1.9.3'
+    def androidxActivity_version = '1.10.0'
     implementation "androidx.activity:activity-ktx:$androidxActivity_version"
 
     // ViewModelScope
@@ -120,7 +120,7 @@ dependencies {
     testImplementation "androidx.arch.core:core-testing:$androidxCoreTesting_version"
     androidTestImplementation "androidx.arch.core:core-testing:$androidxCoreTesting_version"
 
-    def logback_version = '1.5.16' // On error, downgrade to 1.2.11
+    def logback_version = '1.5.16'
     implementation "ch.qos.logback:logback-classic:$logback_version"
 
     def rxKotlin_version = '2.4.0'
