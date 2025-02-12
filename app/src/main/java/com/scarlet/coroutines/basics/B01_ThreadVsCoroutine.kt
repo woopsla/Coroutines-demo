@@ -24,7 +24,6 @@ object Threads {
         }
         println("\nElapses time = $time ms")
     }
-
 }
 
 object Coroutines {
