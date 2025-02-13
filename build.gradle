@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext.kotlinVersion = '2.0.20'
-    ext.gradleVersion = '8.7.3'
+    ext.gradleVersion = '8.8.0'
 
     repositories {
         google()
