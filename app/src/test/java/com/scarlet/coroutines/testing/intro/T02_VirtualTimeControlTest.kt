@@ -10,6 +10,38 @@ import org.junit.Test
 class VirtualTimeControlTest {
 
     @Test
+    fun `virtual time control - StandardTestDispatcher`() = runTest {
+        var state = 0
+
+        launch {
+            state = 1
+            delay(1_000)
+            state = 2
+        }
+
+        // What `state` value should we compare with to make the test pass? 0 or 1?
+//        assertThat(state).isEqualTo(TODO())
+        assertThat(state).isEqualTo(0)
+        log("$currentTime")
+    }
+
+    @Test
+    fun `virtual time control - UnconfinedCoroutineDispatcher - eager`() =
+        runTest(UnconfinedTestDispatcher()) {
+            var state = 0
+
+            launch {
+                state = 1
+                delay(1_000)
+                state = 2
+            }
+
+            // What `state` value should we compare with to make the test pass? 0 or 1?
+//            assertThat(state).isEqualTo(TODO())
+            log("$currentTime")
+        }
+
+    @Test
     fun `test virtual time control - StandardTestDispatcher`() = runTest {
         var count = 0
 
@@ -27,19 +59,17 @@ class VirtualTimeControlTest {
         assertThat(count).isEqualTo(0)
         log("$currentTime")
 
-//        advanceTimeBy(1_000)
-//        log("$currentTime")
-//        assertThat(count).isEqualTo(0)
-//
-//        advanceTimeBy(1_000)
+//        advanceTimeBy(1_000);
 //        log("$currentTime")
 //        assertThat(count).isEqualTo(1)
 //
-//        advanceTimeBy(1_000)
+//        advanceTimeBy(1_000); runCurrent()
 //        log("$currentTime")
 //        assertThat(count).isEqualTo(3)
-
-        // How to assert count == 5?
+//
+//        advanceTimeBy(1_000); runCurrent()
+//        log("$currentTime")
+//        assertThat(count).isEqualTo(5)
     }
 
     @Test
@@ -48,22 +78,20 @@ class VirtualTimeControlTest {
 
         launch {
             state = 1
-            yield()
+            delay(1_000)
             state = 2
             delay(1_000)
             state = 3
             delay(1_000)
             state = 4
-            delay(1_000)
-            state = 5
         }
 
-        assertThat(state).isEqualTo(0)
+        assertThat(state).isEqualTo(1)
         log("$currentTime")
 
         // `runCurrent` run any tasks that are pending at or before the current virtual clock-time.
         // Calling this function will never advance the clock.
-        runCurrent()
+        advanceTimeBy(1_000); runCurrent()
         assertThat(state).isEqualTo(2)
         log("$currentTime")
 
@@ -71,39 +99,9 @@ class VirtualTimeControlTest {
         // If new tasks are scheduled due to advancing virtual time, they will be executed before
         // `advanceUntilIdle` returns.
         advanceUntilIdle()
-        assertThat(state).isEqualTo(5)
+        assertThat(state).isEqualTo(4)
         log("$currentTime")
     }
-
-    @Test
-    fun `virtual time control - StandardTestDispatcher`() = runTest {
-        var state = 0
-
-        launch {
-            state = 1
-            delay(1_000)
-            state = 2
-        }
-
-        // What `state` value should we compare with to make the test pass? 0 or 1?
-//        assertThat(state).isEqualTo(TODO())
-        log("$currentTime")
-    }
-
-    @Test
-    fun `virtual time control - UnconfinedCoroutineDispatcher - eager`() =
-        runTest(UnconfinedTestDispatcher()) {
-            var state = 0
-
-            launch {
-                state = 1
-                delay(1_000)
-                state = 2
-            }
-
-            assertThat(state).isEqualTo(1) // 0 or 1?
-            log("$currentTime")
-        }
 
     @Test
     fun `paused and resume dispatcher - realistic example`() = runTest {
@@ -118,13 +116,16 @@ class VirtualTimeControlTest {
 
         assertThat(list).containsExactly(42)
 
-        // How to pause and resume the dispatcher?
+        // How to make the test pass?
 //        TODO()
 
         assertThat(list).containsExactly(42, 777)
     }
 }
 
+/**
+ * Deprecated Example
+ */
 //    @Test
 //    fun `paused and resume dispatcher - realistic example - runBlockingTest`() = runBlockingTest {
 //

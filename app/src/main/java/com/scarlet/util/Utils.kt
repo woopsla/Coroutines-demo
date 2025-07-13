@@ -27,7 +27,6 @@ fun CoroutineScope.coroutineInfo(indent: Int) {
     delim()
 }
 
-@ExperimentalStdlibApi
 fun scopeInfo(scope: CoroutineScope, indent: Int) {
     delim()
     log("\t".repeat(indent) + "Scope's job = ${scope.coroutineContext[Job]}")
@@ -46,12 +45,13 @@ fun Job.completeStatus(name: String = "Job", level: Int = 0) = apply {
 }
 
 /**
- * **Caveat**: should be cautiously used because it shows the status of the coroutine
+ * **Caveat**: should be used cautiously because it shows the status of the coroutine
  * at the time of invocation, not when completed.
  */
 fun CoroutineScope.completeStatus(name: String = "scope", level: Int = 0) = apply {
     log("${spaces(level)}$name: isCancelled = ${coroutineContext.job.isCancelled}")
 }
+/**/
 
 fun CoroutineScope.onCompletion(name: String): CoroutineScope = apply {
     coroutineContext.job.invokeOnCompletion {

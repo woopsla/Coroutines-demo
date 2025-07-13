@@ -2,8 +2,18 @@ package com.scarlet.coroutines.basics
 
 import com.scarlet.util.log
 import kotlinx.coroutines.*
-import java.lang.RuntimeException
 
+//
+//             Top-level Coroutine
+//                     |
+//               Level 1 Coroutine
+//                     |
+//               Level 2 Coroutine
+//                     |
+//        +------------+-----------+
+//        |                        |
+//  Level 3 Coroutine    Another Level 3 Coroutine
+//
 object Nested_Coroutines {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking<Unit> {
@@ -26,6 +36,13 @@ object Nested_Coroutines {
  * Structured Concurrency Preview
  */
 
+//
+//         Parent (❌)
+//              |
+//      +-------+-------+
+//      |               |
+//  child1(❌)       child2 (❌)
+//
 object Canceling_parent_coroutine_cancels_the_parent_and_its_children {
 
     @JvmStatic
@@ -56,6 +73,13 @@ object Canceling_parent_coroutine_cancels_the_parent_and_its_children {
     }
 }
 
+//
+//         Parent (✅)
+//              |
+//      +-------+-------+
+//      |               |
+//  child1(❌)       child2 (✅)
+//
 object Canceling_a_child_cancels_only_the_child {
 
     @JvmStatic
@@ -89,6 +113,13 @@ object Canceling_a_child_cancels_only_the_child {
     }
 }
 
+//
+//         Parent (🔥)
+//              |
+//      +-------+-------+
+//      |               |
+//  child1(❌)       child2 (❌)
+//
 object Failed_parent_causes_cancellation_of_all_children {
 
     @JvmStatic
@@ -116,6 +147,13 @@ object Failed_parent_causes_cancellation_of_all_children {
     }
 }
 
+//
+//          Parent (❌)
+//              |
+//      +-------+-------+
+//      |               |
+//  child1(🔥)       child2 (❌)
+//
 object Failed_child_causes_cancellation_of_its_parent_and_siblings {
 
     @JvmStatic

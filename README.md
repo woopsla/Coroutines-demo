@@ -154,7 +154,6 @@
 - [coroutines/testing/intro/T04_Timeout02Test.kt](app/src/test/java/com/scarlet/coroutines/testing/intro/T04_Timeout02Test.kt)
 - [coroutines/testing/intro/T05_MultipleDispatchersTest.kt](app/src/test/java/com/scarlet/coroutines/testing/intro/T05_MultipleDispatchersTest.kt)
 - [coroutines/testing/intro/T06_BackgroundTest.kt](app/src/test/java/com/scarlet/coroutines/testing/intro/T06_BackgroundTest.kt)
-- [coroutines/testing/intro/T07_CoroutineLeakTest.kt](app/src/test/java/com/scarlet/coroutines/testing/intro/T07_CoroutineLeakTest.kt)
 
 ***
 
@@ -176,7 +175,7 @@
 
 ***
 
-### Coroutines Testing Exercises
+### Coroutines Testing Demos
 
 - [coroutines/testing/ApiService.kt](app/src/test/java/com/scarlet/coroutines/testing/ApiService.kt)
 - [coroutines/testing/version1/ArticleViewModel.kt](app/src/test/java/com/scarlet/coroutines/testing/version1/ArticleViewModel.kt)
@@ -187,4 +186,10 @@
 - [coroutines/testing/version3/CoroutineTestRuleTest.kt](app/src/test/java/com/scarlet/coroutines/testing/version3/CoroutineTestRuleTest.kt)
 - [coroutines/testing/version4/ArticleViewModel.kt](app/src/test/java/com/scarlet/coroutines/testing/version4/ArticleViewModel.kt)
 - [coroutines/testing/version4/CoroutineTestRuleTest.kt](app/src/test/java/com/scarlet/coroutines/testing/version4/CoroutineTestRuleTest.kt)
+
+### Coroutine Testing Exercises
+
+- [coroutines/testing/exercises/E01_CoroutineTest.kt](app/src/test/java/com/scarlet/coroutines/testing/exercises/E01_CoroutineTest.kt)
+- [coroutines/testing/exercises/E02_CoroutineTest.kt](app/src/test/java/com/scarlet/coroutines/testing/exercises/E02_CoroutineTest.kt)
+- [coroutines/testing/exercises/E03_CoroutineTest.kt](app/src/test/java/com/scarlet/coroutines/testing/exercises/E03_CoroutineTest.kt)
 

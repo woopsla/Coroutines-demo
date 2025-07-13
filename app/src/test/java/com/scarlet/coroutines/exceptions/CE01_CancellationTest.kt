@@ -10,9 +10,9 @@ import org.junit.Test
 class CancellationTest {
 
     private suspend fun networkRequestCooperative() {
-        log("networkRequestCooperative (\uD83E\uDEF1\uD83C\uDFFC\u200D\uD83E\uDEF2\uD83C\uDFFE)")
-        delay(1_000)
-        log("networkRequestCooperative done (\uD83E\uDEF1\uD83C\uDFFC\u200D\uD83E\uDEF2\uD83C\uDFFE)")
+        log("networkRequestCooperative (🫱🏼)")
+        delay(3_000)
+        log("networkRequestCooperative done (🫱🏼)")
     }
 
     private suspend fun networkRequestFailed() {
@@ -25,10 +25,10 @@ class CancellationTest {
     private suspend fun networkRequestUncooperative() = coroutineScope {
         fun fib(n: Long): Long = if (n <= 1) n else fib(n - 1) + fib(n - 2)
 
-        log("networkRequestUncooperative (\uD83D\uDD12)")
-        log("I AM BUSY ... NO INTERRUPTIONS PLEASE (⛔)")
-        fib(45) // simulating blocking operation
-        log("networkRequestUncooperative done (\uD83D\uDD12)")
+        log("networkRequestUncooperative (🔒)")
+        log("I AM BUSY ... NO INTERRUPTIONS PLEASE ...")
+        log("fib(45) = ${fib(45)}") // simulating blocking operation
+        log("networkRequestUncooperative done (🔒)")
     }
 
     /**/
@@ -36,52 +36,32 @@ class CancellationTest {
     @Test
     fun `uncooperative coroutine cannot be cancelled`() = runTest {
         val job = launch {
-            try {
-                networkRequestUncooperative()
-            } catch (ex: Exception) {
-                log("Caught: ${ex.javaClass.simpleName}")
-                if (ex is CancellationException) {
-                    throw ex
-                }
-            }
+            networkRequestUncooperative()
 
-            log("Am I printed?")
+            log("Am I printed?, first check")
 
-            try {
-                delay(100)
-            } catch (ex: Exception) {
-                log("Caught: ${ex.javaClass.simpleName}")
-                if (ex is CancellationException) {
-                    throw ex
-                }
-            }
+            delay(100)
 
-            log("Am I printed?, too")
+            log("Am I printed?, second check")
         }.onCompletion("job")
 
         delay(100)
-
-        job.cancelAndJoin()
-        job.completeStatus()
+//        job.cancelAndJoin()
     }
 
     @Test
-    fun `cooperative coroutine can be canceled`() = runTest {
+    fun `cooperative coroutine can be canceled`() = runBlocking {
         val job = launch {
-            try {
-                networkRequestCooperative()
+            networkRequestCooperative()
 
-                println("Am I printed?")
-            } catch (ex: Exception) {
-                log("Caught: ${ex.javaClass.simpleName}")
-                if (ex is CancellationException) {
-                    throw ex
-                }
-            }
+            log("Am I printed?, first check")
+
+            delay(100)
+
+            log("Am I printed?, second check")
         }.onCompletion("Job")
 
         delay(100)
-
         job.cancelAndJoin()
     }
 

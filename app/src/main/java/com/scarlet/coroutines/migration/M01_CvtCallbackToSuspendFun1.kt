@@ -41,51 +41,31 @@ object UsingCallback_Demo1 {
 
 object CvtToSuspendingFunction_Demo1 {
     /*
-     * Use `resume` only or `resume/resumeWithException`
+     * Use `resume/resumeWithException` or `resumeWith` only
      */
     private suspend fun getData(status: Boolean = true): String = TODO()
 
     @JvmStatic
     fun main(args: Array<String>) = runBlocking<Unit> {
+        method1() // for success case
+        method1(false) // for error case
 
-        // for success case
-        try {
-            getData(true).also {
-                log("Data received: $it")
-            }
-        } catch (ex: Exception) {
-            log("Caught ${ex.javaClass.simpleName}")
-        }
-
-        // for error case
-        runCatching { getData(false) }
-            .onSuccess { log("Data received: $it") }
-            .onFailure {
-                log("Caught ${it.javaClass.simpleName}")
-            }
+        method2() // for success case
+        method2(false) // for error case
     }
-}
 
-object CvtToSuspendingFunction_Demo1_1 {
-    /*
-     * Use `resumeWith` only
-     */
-    private suspend fun getData(status: Boolean = true): String = TODO()
-
-    @JvmStatic
-    fun main(args: Array<String>) = runBlocking<Unit> {
-
-        // for success case
+    suspend fun method1(status: Boolean = true) {
         try {
-            getData(true).also {
+            getData(status).also {
                 log("Data received: $it")
             }
         } catch (ex: Exception) {
             log("Caught ${ex.javaClass.simpleName}")
         }
+    }
 
-        // for error case
-        runCatching { getData(false) }
+    suspend fun method2(status: Boolean = true) {
+        runCatching { getData(status) }
             .onSuccess { log("Data received: $it") }
             .onFailure {
                 log("Caught ${it.javaClass.simpleName}")

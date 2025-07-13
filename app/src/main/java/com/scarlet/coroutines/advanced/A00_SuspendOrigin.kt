@@ -24,4 +24,3 @@ object SuspendOrigin {
         Thread(it, "scheduler").apply { isDaemon = true }
     }
 }
-

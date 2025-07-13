@@ -28,58 +28,58 @@ class ScopedActivity : AppCompatActivity() {
                     )
                 }
 
-                // Install the custom handler here ...
+                // TODO: Install the custom handler here ...
                 launch {
-                    Log.i(TAG, "child 1 started")
+                    Log.e(TAG, "child 1 started")
                     delay(2_000)
-                    Log.i(TAG, "child 1: I'm about to throwing exception")
+                    Log.e(TAG, "child 1: I'm about to throwing exception")
                     throw RuntimeException("OOPS!")
                 }.apply {
                     invokeOnCompletion {
-                        Log.i(TAG, "Child 1: isCancelled = $isCancelled, cause = $it")
+                        Log.e(TAG, "Child 1: isCancelled = $isCancelled, cause = $it")
                     }
                 }
 
                 launch {
-                    Log.i(TAG, "child 2 started")
+                    Log.e(TAG, "child 2 started")
                     delay(5_000)
                 }.apply {
                     invokeOnCompletion {
-                        Log.i(TAG, "Child 2: isCancelled = $isCancelled, cause = $it")
+                        Log.e(TAG, "Child 2: isCancelled = $isCancelled, cause = $it")
                     }
                 }
             }
 
         }.apply {
             invokeOnCompletion {
-                Log.i(TAG, "Parent: isCancelled = $isCancelled, cause = $it")
+                Log.e(TAG, "Parent: isCancelled = $isCancelled, cause = $it")
             }
         }
     }
 
     override fun onStart() {
         super.onStart()
-        Log.d(TAG, "[onStart]")
+        Log.e(TAG, "[onStart]")
     }
 
     override fun onStop() {
         super.onStop()
-        Log.d(TAG, "[onStop]")
+        Log.e(TAG, "[onStop]")
     }
 
     override fun onPause() {
         super.onPause()
-        Log.d(TAG, "[onPause]")
+        Log.e(TAG, "[onPause]")
     }
 
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "[onResume]")
+        Log.e(TAG, "[onResume]")
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "[onDestroy]")
+        Log.e(TAG, "[onDestroy]")
     }
 
     companion object {

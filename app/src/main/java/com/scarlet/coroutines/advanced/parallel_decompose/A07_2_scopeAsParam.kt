@@ -39,15 +39,7 @@ object Parent_Cancellation_When_Passing_Coroutine_Scope_As_Parameter {
         val kiwi = scope.async { loadImage(name2) }.onCompletion("kiwi")
 
         log("Waiting for two images to combine")
-        val image = try { // useless
-            combineImages(apple.await(), kiwi.await())
-        } catch (e: Exception) {
-            log("combineImages: Caught $e")
-            // Comment out the line below to see the difference
-            if (e is CancellationException) throw e
-            Image("Oops")
-        }
-        return Image("Fake Image")
+        return combineImages(apple.await(), kiwi.await())
     }
 
     @JvmStatic
@@ -59,7 +51,7 @@ object Parent_Cancellation_When_Passing_Coroutine_Scope_As_Parameter {
             log("Parent done: image = $image")
         }.onCompletion("parent")
 
-        delay(500)
+        delay(200)
         parent.cancel(CancellationException("Cancel parent coroutine after 500ms"))
         parent.join()
 
@@ -73,8 +65,7 @@ object Child_Failure_When_Passing_Coroutine_Scope_As_Parameter {
 
     private suspend fun loadAndCombine(scope: CoroutineScope, name1: String, name2: String): Image {
         // Are these Root Coroutines because they are created through `scope`?
-        // If not root coroutines, exceptions will be thrown inside `async` block, and will propagate.
-        // Therefore, try-catch around `await()` is eventually useless.
+        // If not root coroutines, try-catch around `await()` is eventually useless.
         val apple = scope.async { loadImageFail(name1) }.onCompletion("apple")
         val kiwi = scope.async { loadImage(name2) }.onCompletion("kiwi")
 
@@ -83,7 +74,6 @@ object Child_Failure_When_Passing_Coroutine_Scope_As_Parameter {
         // However, it is executed anyway.
         // You'd better think of it as covered, but not treated as handled ... [by Jungsun Kim]
         val image = try {
-            // Exchange apple and kiwi to see the difference
             combineImages(
                 apple.await(),
                 kiwi.await(),

@@ -2,13 +2,11 @@ package com.scarlet.coroutines.migration
 
 import com.scarlet.model.Recipe
 import com.scarlet.util.Resource
-import kotlinx.coroutines.suspendCancellableCoroutine
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
-import kotlin.coroutines.resume
 
 interface RecipeApi {
     @GET("api/search")
@@ -46,7 +44,9 @@ object UsingCallback_Demo2 {
 }
 
 object CvtToSuspendingFunction_Demo2 {
-
+    /*
+     * TODO: Convert this method to a suspending function
+     */
     fun searchRecipes(
         query: String, api: RecipeApi, callback: RecipeCallback<List<Recipe>>
     ) {
@@ -64,32 +64,5 @@ object CvtToSuspendingFunction_Demo2 {
                 callback.onError(Resource.Error(t.message))
             }
         })
-    }
-
-    // Use Call.await()
-    suspend fun searchRecipesV2(query: String, api: RecipeApi): Resource<List<Recipe>> {
-        val call: Call<List<Recipe>> = api.search("key", query)
-
-        TODO()
-    }
-}
-
-suspend fun <T> Call<T>.await(): Resource<T> = suspendCancellableCoroutine { continuation ->
-    enqueue(object : Callback<T> {
-        override fun onResponse(call: Call<T>, response: Response<T>) {
-            if (response.isSuccessful) {
-                continuation.resume(Resource.Success(response.body()!!))
-            } else {
-                continuation.resume(Resource.Error(response.message()))
-            }
-        }
-
-        override fun onFailure(call: Call<T>, t: Throwable) {
-            continuation.resume(Resource.Error(t.message))
-        }
-    })
-
-    continuation.invokeOnCancellation {
-        cancel()
     }
 }

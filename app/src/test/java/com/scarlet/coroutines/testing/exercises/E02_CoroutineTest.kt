@@ -1,15 +1,13 @@
-package com.scarlet.coroutines.testing.intro
+package com.scarlet.coroutines.testing.exercises
 
 import com.google.common.truth.Truth.assertThat
 import com.scarlet.model.Article
-import com.scarlet.util.log
-import com.scarlet.util.testDispatcher
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Test
@@ -23,7 +21,7 @@ class FakeApiService : ApiService {
     private val articles = mutableListOf<Article>()
 
     override suspend fun populate() {
-        delay(1000)
+        delay(1_000)
         articles.add(Article("1", "Title 1", "Body 1"))
         articles.add(Article("2", "Title 2", "Body 2"))
         articles.add(Article("3", "Title 3", "Body 3"))
@@ -38,17 +36,16 @@ class FakeApiService : ApiService {
 class Repository(
     private val apiService: ApiService,
     // TODO() - Add a coroutine dispatcher
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
-    private val scope = CoroutineScope(ioDispatcher)
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     fun initialize() {
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             apiService.populate();
         }
     }
 
-    suspend fun loadData() = withContext(ioDispatcher) {
+    suspend fun loadData() = withContext(Dispatchers.IO) {
         apiService.getArticles()
     }
 }
@@ -61,8 +58,10 @@ class A02_CoroutineTest {
     // How to make this test pass?
     @Test
     fun repositoryTest() = runTest {
-        repository = Repository(FakeApiService(), testDispatcher)
+        repository = Repository(FakeApiService())
         repository.initialize()
+
+        advanceUntilIdle()
 
         val articles = repository.loadData()
         assertThat(articles).containsExactly(

@@ -12,7 +12,6 @@ import kotlinx.coroutines.*
  * too. This is a very powerful feature, because it allows you to cancel all coroutines.
  */
 
-@ExperimentalStdlibApi
 object CoroutineScope_Has_Context {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
@@ -27,6 +26,11 @@ object CoroutineScope_Has_Context {
     }
 }
 
+//
+//          scope (😡) <--- cancel
+//            |
+//   Top-level coroutine (😡)
+//
 object Canceling_Scope_Cancels_It_and_Its_Job {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
@@ -51,6 +55,17 @@ object Canceling_Scope_Cancels_It_and_Its_Job {
     }
 }
 
+//
+//                        scope (😡) <--- cancel
+//                             |
+//               +-------------+-------------+
+//               |                           |
+//          parent1 (😡)                parent2 (😡)
+//               |                           |
+//        +------+------+             +------+------+
+//        |             |             |             |
+//    child1(😡)   child2(😡)    child3(😡)   child4(😡)
+//
 object Canceling_Scope_Cancels_It_and_Its_Job_and_All_Descendants {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
@@ -74,21 +89,29 @@ object Canceling_Scope_Cancels_It_and_Its_Job_and_All_Descendants {
     }
 }
 
+//
+//   cancel --> scopeLeft (😡)                  scopeRight (✅)
+//                  |                               |
+//             parentLeft (😡)                 parentRight (✅)
+//                  |                               |
+//          +-------+-------+               +-------+-------+
+//          |               |               |               |
+//    child L-1(😡)   child L-2(😡)  child R-1(✅)   child R-2(✅)
+//
 object Canceling_A_Scope_Does_Not_Affect_Other_Scopes {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
         val scopeLeft = CoroutineScope(Job())
-
-        val parentLeft = scopeLeft.launch(CoroutineName("Parent Left")) {
-            launch { delay(1_000); log("child L-1 done") }.onCompletion("child L-1")
-            launch { delay(1_000); log("child L-2 done") }.onCompletion("child L-2")
-        }.onCompletion("parent left")
-
         val scopeRight = CoroutineScope(Job())
 
+        val parentLeft = scopeLeft.launch(CoroutineName("Parent Left")) {
+            launch { delay(1_500); log("child L-1 done") }.onCompletion("child L-1")
+            launch { delay(1_500); log("child L-2 done") }.onCompletion("child L-2")
+        }.onCompletion("parent left")
+
         val parentRight = scopeRight.launch(CoroutineName("Parent Right")) {
-            launch { delay(1_000); log("child R-1 done") }.onCompletion("child R-1")
-            launch { delay(1_000); log("child R-2 done") }.onCompletion("child R-2")
+            launch { delay(1_500); log("child R-1 done") }.onCompletion("child R-1")
+            launch { delay(1_500); log("child R-2 done") }.onCompletion("child R-2")
         }.onCompletion("parent right")
 
         delay(500)
@@ -125,21 +148,20 @@ object GlobalScope_Cancellation_Demo {
 object GlobalScope_Cancellation_Demo2 {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
-        val job = GlobalScope.launch(CoroutineName("Parent 1")) {
+        val job1 = GlobalScope.launch(CoroutineName("Parent 1")) {
             log("GlobalScope is active")
             launch(CoroutineName("Child 1")) { delay(1_000) }.onCompletion("Child 1")
             launch(CoroutineName("Child 2")) { delay(1_000) }.onCompletion("Child 2")
         }.onCompletion("Parent 1")
 
-        GlobalScope.launch(CoroutineName("Parent 2")) {
+        val job2 = GlobalScope.launch(CoroutineName("Parent 2")) {
             launch(CoroutineName("Child3")) { delay(1_000) }.onCompletion("Child 3")
         }.onCompletion("Parent 2")
 
         delay(500)
+        job1.cancel()
 
-        job.cancelAndJoin()
-
-        delay(2_000)
+        joinAll(job1, job2)
     }
 }
 

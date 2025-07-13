@@ -1,5 +1,6 @@
 package com.scarlet.coroutines.exceptions
 
+import com.scarlet.util.completeStatus
 import com.scarlet.util.log
 import com.scarlet.util.onCompletion
 import com.scarlet.util.testDispatcher
@@ -28,6 +29,9 @@ import org.junit.Test
  * - `runTest` will pass the test if either `.await()` not called, or called within `try-catch`.
  */
 class AsyncEH01Test {
+    private val ehandler = CoroutineExceptionHandler { context, exception ->
+        log("Caught in handler: $exception, context = $context")
+    }
 
     @Test
     fun `try-catch inside async works normally`() = runTest {
@@ -35,7 +39,7 @@ class AsyncEH01Test {
 
         val deferred = async {
             try {
-                throw RuntimeException("oops(❌)")
+                throw RuntimeException("Oops(❌)")
             } catch (ex: Exception) {
                 log("Caught: $ex") // caught
             }
@@ -51,20 +55,20 @@ class AsyncEH01Test {
     ///////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Even though a exception is caught, it propagates to the parent scope.
-     * The structured concurrency still works.
-     * Test passes because the exception is handled and there are no uncaught exceptions.
+     * Even though an exception is caught, it affects the parent scope.
+     * That it, t structured concurrency still works.
+     * Test passes because the exception is considered as handled and there are no uncaught exceptions.
      */
     @Test
     fun `direct child of scope - catch on await`() = runTest {
         onCompletion("runTest")
 
-        // Job or SupervisorJob does matter.
-        val scope = CoroutineScope(SupervisorJob()).onCompletion("scope")
+        // `Job` or `SupervisorJob` does matter.
+        val scope = CoroutineScope(Job() + ehandler).onCompletion("scope") // ehandler of no use
 
         val deferred: Deferred<Int> = scope.async(testDispatcher) { // root coroutine
             delay(1_000)
-            throw RuntimeException("oops(❌)") // exposed exception
+            throw RuntimeException("Oops(❌)") // exposed exception
         }.onCompletion("deferred")
 
         try {
@@ -72,8 +76,6 @@ class AsyncEH01Test {
         } catch (ex: Exception) {
             log("Caught: $ex") // Caught and handled
         }
-
-//        scope.completeStatus("scope") // Why do we need this?
     }
 
     @Test
@@ -85,10 +87,11 @@ class AsyncEH01Test {
         // a root coroutine
         val deferred: Deferred<Int> = scope.async(testDispatcher) {
             delay(1_000)
-            throw RuntimeException("oops(❌)") // exposed exception
+            throw RuntimeException("Oops(❌)") // exposed exception
         }.onCompletion("deferred")
 
         // No `.await()` called, check whether exception will be silently dropped.
+        delay(1_500)
     }
 
     @Test
@@ -115,9 +118,10 @@ class AsyncEH01Test {
 
             val parent: Deferred<Int> = scope.async { // root coroutine
                 delay(1_000)
-                throw RuntimeException("oops(❌)") // exposed exception
+                throw RuntimeException("Oops(❌)") // exposed exception
             }.onCompletion("parent")
 
+            // What will happen to this sibling?
             val sibling = scope.launch {
                 delay(1_500)
                 log("unreachable sibling done")
@@ -130,7 +134,7 @@ class AsyncEH01Test {
                 log("Caught: $ex")
             }
 
-            joinAll(parent, sibling)
+            sibling.join()
         }
 
     ///////////////////////////////////////////////////////////////////////////////////
@@ -139,7 +143,7 @@ class AsyncEH01Test {
     ///////////////////////////////////////////////////////////////////////////////////
 
     @Test
-    fun `direct child of supervisorScope - catch on await`() =
+    fun `direct child of supervisorScope`() =
         runTest {
             onCompletion("runTest")
 
@@ -147,9 +151,9 @@ class AsyncEH01Test {
                 onCompletion("supervisorScope")
 
                 // `launch` will make test fail, but `async` will not!
-                val deferred = async { // root coroutine
-                    delay(100)
-                    throw RuntimeException("oops(❌)") // exposed exception
+                val deferred = async(ehandler) { // root coroutine, ehandler of no use
+                    delay(1_000)
+                    throw RuntimeException("Oops(❌)") // exposed exception
                 }.onCompletion("child")
 
                 launch {
@@ -166,42 +170,19 @@ class AsyncEH01Test {
             }
         }
 
-    @Test
-    fun `direct child of supervisorScope - await not called`() =
-        runTest {
-            onCompletion("runTest")
-
-            supervisorScope {
-                onCompletion("supervisorScope")
-
-                // `launch` will make test fail, but `async` will not!
-                val deferred = async { // root coroutine
-                    delay(100)
-                    throw RuntimeException("oops(❌)") // exposed exception
-                }.onCompletion("child")
-
-                launch {
-                    delay(1_500)
-                    log("sibling done")
-                }.onCompletion("sibling")
-
-                // No `.await()` called, check whether exception will be silently dropped.
-            }
-        }
-
     /**
-     * Quiz: Why `whoAmI` coroutine cancelled?
+     * Quiz: What will happen to the `parent` and why?
      */
     @Test
     fun `root coroutine - exposed exception - another example`() = runTest {
         onCompletion("runTest")
 
-        val scope = CoroutineScope(Job()).onCompletion("scope")
+        val scope = CoroutineScope(Job() + ehandler).onCompletion("scope")
 
-        val job = scope.launch { // root coroutine
-            val deferred: Deferred<Int> = scope.async { // root coroutine, too
+        val parent = scope.launch { // root coroutine
+            val deferred: Deferred<Unit> = scope.async { // root coroutine, too
                 delay(100)
-                throw RuntimeException("oops(❌)")
+                throw RuntimeException("Oops(❌)")
             }.onCompletion("child")
 
             try {
@@ -210,8 +191,8 @@ class AsyncEH01Test {
                 log("Caught: $ex")
             }
             delay(1_000)
-        }.onCompletion("whoAmI")
+        }.onCompletion("parent")
 
-        job.join()
+        parent.join()
     }
 }

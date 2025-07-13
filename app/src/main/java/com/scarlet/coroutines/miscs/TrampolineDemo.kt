@@ -2,31 +2,32 @@ package com.scarlet.coroutines.miscs
 
 import java.math.BigInteger
 
-// Plain recursive factorial function
-object trampoline_demo1 {
-    
+object factorials {
+
+    // Plain recursive factorial function
     fun factorial(n: Long): BigInteger =
         if (n <= 1) {
             BigInteger.ONE
         } else {
-            BigInteger.valueOf(n) * factorial(n - 1)
+            n.toBigInteger() * factorial(n - 1)
         }
 
     @JvmStatic
     fun main(args: Array<String>) {
         println((0 until 10).map { factorial(it.toLong()) })
-        println(factorial(10_000))
+        println(factorial(10_000L))
     }
 }
 
-// Tail-recursive function
-object trampoline_demo2 {
+object factorials_TR {
 
+    // Tail-recursive function
+    tailrec
     fun factorial(n: Long, accumulator: BigInteger): BigInteger =
         if (n <= 1) {
             accumulator
         } else {
-            factorial(n - 1, accumulator * BigInteger.valueOf(n))
+            factorial(n - 1, accumulator * n.toBigInteger())
         }
 
     @JvmStatic
@@ -37,13 +38,13 @@ object trampoline_demo2 {
 }
 
 // Lazy evaluation
-object trampoline_demo3 {
+object trampoline_demo1 {
 
     fun factorial(n: Long, accumulator: BigInteger): BigInteger =
         if (n <= 1) {
             accumulator
         } else {
-            factorial(n - 1, accumulator * BigInteger.valueOf(n))
+            factorial(n - 1, accumulator * n.toBigInteger())
         }
 
     fun <T> run(f: () -> Any?): T = TODO()
@@ -56,7 +57,7 @@ object trampoline_demo3 {
 }
 
 // Trampoline
-object trampoline_demo4 {
+object trampoline_demo2 {
 
     fun factorial(n: Long, accumulator: BigInteger): BigInteger =
         if (n <= 1) {

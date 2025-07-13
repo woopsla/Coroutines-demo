@@ -46,7 +46,7 @@ class Timeout02Test {
             log("result = ${loadData(api)}")
         }.onCompletion("job")
 
-        advanceTimeBy(4_999) // 4999 ~ 5000 ms
+        advanceTimeBy(4_999)
         api.deferred.complete("Hello")
 
         log("Done.")

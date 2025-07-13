@@ -68,9 +68,9 @@ object Launch_Join_Demo {
 }
 
 // DON'T DO THIS
-@DelicateCoroutinesApi
 object GlobalScope_Demo {
 
+    @OptIn(DelicateCoroutinesApi::class)
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
         log("1. start of runBlocking")
@@ -79,7 +79,7 @@ object GlobalScope_Demo {
             log("2. before save")
             save(User("A001", "Jody", 33))
             log("3. after save")
-        }.join()
+        }//.join()
 
         log("4. Done.")
     }
@@ -104,7 +104,7 @@ object CoroutineScope_Sneak_Preview_Demo {
         }
 
         // force the main thread wait
-//        Thread.sleep(2000)
+//        Thread.sleep(2_000)
 //        runBlocking { job.join() }
 
         log("3. Done.")

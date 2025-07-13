@@ -1,5 +1,6 @@
 package com.scarlet.coroutines.android
 
+import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
@@ -24,6 +25,7 @@ class MythMainActivity : AppCompatActivity() {
     private var primeJob: Job? = null
     private var countingJob: Job? = null
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_myth)
@@ -41,7 +43,7 @@ class MythMainActivity : AppCompatActivity() {
             cancelButton.isEnabled = true
             status.text = "Calculating big prime number ..."
 
-            showSnackbar("Launching findBigPrime ...")
+            showSnackBar("Launching findBigPrime ...")
 
             primeJob = lifecycleScope.launch {
                 val primeNumber = findBigPrime_Wish_To_Be_NonBlocking()
@@ -55,7 +57,7 @@ class MythMainActivity : AppCompatActivity() {
         cancelButton.setOnClickListener {
             findButton.isEnabled = true
             cancelButton.isEnabled = false
-            showSnackbar("Cancelling findBigPrime ...")
+            showSnackBar("Cancelling findBigPrime ...")
             status.text = "findBigPrime cancelled"
 
             primeJob?.cancel()
@@ -74,7 +76,7 @@ class MythMainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showSnackbar(msg: String) {
+    private fun showSnackBar(msg: String) {
         Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).show()
     }
 

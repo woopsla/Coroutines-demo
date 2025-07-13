@@ -14,6 +14,13 @@ import kotlinx.coroutines.*
  *   it is first in _Cancelling_ and then in _Cancelled_ state.
  */
 
+//
+//          scope (❌)
+//              |
+//          parent (❌)
+//              |
+//          child1(❌)
+//
 object Cancel_Parent_Scope {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking<Unit> {
@@ -38,6 +45,15 @@ object Cancel_Parent_Scope {
     }
 }
 
+//
+//          scope (✅)
+//              |
+//         Parent (❌)
+//              |
+//      +-------+-------+
+//      |               |
+//  child1(❌)       child2 (❌)
+//
 object Cancel_Parent_Coroutine {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking<Unit> {
@@ -70,6 +86,15 @@ object Cancel_Parent_Coroutine {
 
 }
 
+//
+//          scope (✅)
+//              |
+//         Parent (✅)
+//              |
+//      +-------+-------+
+//      |               |
+//  child1(❌)       child2 (✅)
+//
 object Cancel_Child_Coroutine {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking<Unit> {
@@ -102,6 +127,15 @@ object Cancel_Child_Coroutine {
     }
 }
 
+//
+//          scope (✅)
+//              |
+//         Parent (✅)
+//              |
+//      +-------+-------+
+//      |               |
+//  child1(❌)       child2 (❌)
+//
 object Cancel_Children_Only_To_Reuse_Parent_Job {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking<Unit> {
@@ -134,6 +168,15 @@ object Cancel_Children_Only_To_Reuse_Parent_Job {
     }
 }
 
+//
+//          scope (✅)
+//              |
+//         Parent (❌)
+//              |
+//      +-------+-------+
+//      |               |
+//  child1(❌)       child2 (❌)
+//
 object Cancel_Children_Only_To_Reuse_Scope {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking<Unit> {
@@ -191,6 +234,13 @@ object Cancel_Parent_Job_Quiz {
         log("child cancelled = ${child.isCancelled}")
         scope.completeStatus("scope")
     }
+    //
+    //   scope (❌)         Job (✅)
+    //                         |
+    //       +-----------------+
+    //       |
+    //   child (✅)
+    //
 }
 
 

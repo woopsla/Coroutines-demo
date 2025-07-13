@@ -5,20 +5,22 @@ import com.scarlet.util.log
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@ExperimentalCoroutinesApi
 class T05_MultipleDispatchersTest {
     /**
+     * Use of different schedulers in a test causes `IllegalStateException`.
+     * If you need to use several test coroutine dispatchers, create one `TestCoroutineScheduler` and
+     * pass it to each of them.
+     *
      * Note by Kim --> Somewhat mismatch with formal documentation ㅠㅠ
-     * `StandardTestDispatcher` and `UnconfinedTestDispatcher`.
-     * 1. Every `StandardTestDispatcher` will create different `TestCoroutineDispatcher`.
-     * 2. Every `UnconfinedTestDispatcher` will use already existing `TestCoroutineDispatcher`
-     *    regardless of the types of TestCoroutineDispatcher.
+     * `StandardTestDispatcher` vs. `UnconfinedTestDispatcher`.
+     * 1. Every `StandardTestDispatcher` will use different `TestCoroutineScheduler`.
+     * 2. Every `UnconfinedTestDispatcher` will use already existing `TestCoroutineScheduler`.
      * 3. Every `TestCoroutineDispatcher` will reuse the same `TestCoroutineScheduler`
      *    used by mocked `TestCoroutineDispatcher` with `Dispatchers.setMain(testDispatcher)`.
      */
@@ -33,14 +35,15 @@ class T05_MultipleDispatchersTest {
     }
 
     @Test
-    fun `same test scheduler is used2`() = runTest(UnconfinedTestDispatcher()) {
+    fun `same test scheduler is used2`() =
+        runTest(UnconfinedTestDispatcher()) {
 
-        launch(UnconfinedTestDispatcher()) {
-        }
+            launch(UnconfinedTestDispatcher()) {
+            }
 
-        launch(UnconfinedTestDispatcher()) {
+            launch(UnconfinedTestDispatcher()) {
+            }
         }
-    }
 
     @Test(expected = IllegalStateException::class)
     fun `different test scheduler is used1`() = runTest {
@@ -49,6 +52,7 @@ class T05_MultipleDispatchersTest {
         }
     }
 
+
     @Test(expected = IllegalStateException::class)
     fun `different test scheduler is used2`() = runTest(UnconfinedTestDispatcher()) {
 
@@ -56,6 +60,7 @@ class T05_MultipleDispatchersTest {
         }
     }
 
+    @Test
     fun `make same test scheduler be used`() = runTest {
 
         launch(StandardTestDispatcher(testScheduler)) {
@@ -63,7 +68,7 @@ class T05_MultipleDispatchersTest {
     }
 
     @Test
-    fun `somewhat surprise test`() = runTest {
+    fun `somewhat intriguing test`() = runTest {
 
         log("0")
 
@@ -71,8 +76,7 @@ class T05_MultipleDispatchersTest {
             log("1")
         }
 
-        // ???
-        launch(UnconfinedTestDispatcher(TestCoroutineScheduler())) {
+        launch(UnconfinedTestDispatcher(testScheduler)) {
             log("2")
             launch {
                 log("3")

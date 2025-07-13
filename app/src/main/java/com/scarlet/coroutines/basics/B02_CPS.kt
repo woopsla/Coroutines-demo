@@ -14,6 +14,7 @@ object Continuation_Passing_Style {
         val step2 = add(3, 4)
         // Label 2
         val step3 = mul(step1.toDouble(), step2.toDouble())
+        // Label 3
         return step3
     }
 

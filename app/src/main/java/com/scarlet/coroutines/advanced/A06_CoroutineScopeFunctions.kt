@@ -35,16 +35,14 @@ object coroutineScope_Demo1 {
         log("runBlocking: $coroutineContext")
 
         val a = coroutineScope {
-            delay(1_000).also {
-                log("a: $coroutineContext")
-            }
+            log("a: $coroutineContext")
+            delay(1_000)
             10
         }
         log("a is calculated")
         val b = coroutineScope {
-            delay(1_000).also {
-                log("b: $coroutineContext")
-            }
+            log("b: $coroutineContext")
+            delay(1_000)
             20
         }
         log("a = $a, b = $b")
@@ -271,7 +269,7 @@ object Timeout {
         }.onCompletion("child 2")
     }
 // (2 sec)
-// Done
+// child2 done
 }
 
 object WithTimeoutOrNull_Demo {

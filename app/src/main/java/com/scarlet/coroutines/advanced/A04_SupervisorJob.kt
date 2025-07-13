@@ -4,6 +4,13 @@ import com.scarlet.util.log
 import com.scarlet.util.onCompletion
 import kotlinx.coroutines.*
 
+//
+//         scope (Job()/SupervisorJob()) (😡) <--- cancel
+//              |
+//      +-------+-------+
+//      |               |
+//  child1(😡)       child2 (😡)
+//
 object Canceling_Scope_Cancels_its_Job_and_All_Children_Regardless_Of_Job_Types {
 
     @JvmStatic
@@ -34,6 +41,13 @@ object Canceling_Scope_Cancels_its_Job_and_All_Children_Regardless_Of_Job_Types 
     }
 }
 
+//
+//                     scope (Job()/SupervisorJob()) (✅)
+//                          |
+//                  +-------+-------+
+//                  |               |
+//  cancel --->  child1(😡)       child2 (✅)
+//
 object Canceling_A_Child_Cancels_Only_The_Target_Child_Including_All_Its_Descendants_If_Any {
 
     @JvmStatic
@@ -62,6 +76,13 @@ object Canceling_A_Child_Cancels_Only_The_Target_Child_Including_All_Its_Descend
     }
 }
 
+//
+//         scope (Job()) (😡)                 scope (SupervisorJob()) (✅)
+//              |                                  |
+//      +-------+-------+                  +-------+-------+
+//      |               |                  |               |
+//  child1(🔥)       child2 (😡)      child1(🔥)       child2 (✅)
+//
 object SupervisorJob_Child_Failure_SimpleDemo {
 
     @JvmStatic
@@ -85,6 +106,6 @@ object SupervisorJob_Child_Failure_SimpleDemo {
 
         joinAll(child1, child2)
 
-        log("is Parent cancelled? = ${scope.coroutineContext.job.isCancelled}")
+        log("is scope cancelled? = ${scope.coroutineContext.job.isCancelled}")
     }
 }

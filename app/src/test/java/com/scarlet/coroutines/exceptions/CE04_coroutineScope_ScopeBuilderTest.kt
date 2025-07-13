@@ -45,7 +45,7 @@ class CoroutineScopeBuilderTest {
 
                 delay(100)
 
-                coroutineContext.cancel(CancellationException("Intentional cancellation(\uD83D\uDE4F\uD83C\uDFFC)"))
+                coroutineContext.cancel(CancellationException("Intentional Cancellation(🙏🏼)"))
 //                coroutineContext.cancelChildren()
             }
         } catch (ex: Exception) {
@@ -62,7 +62,7 @@ class CoroutineScopeBuilderTest {
 
                 launch {
                     delay(500)
-                    throw RuntimeException("oops(❌)")
+                    throw RuntimeException("Oops(❌)")
                 }.onCompletion("child1")
 
                 launch {
@@ -77,7 +77,7 @@ class CoroutineScopeBuilderTest {
     //
     //                     scope (Job)(😡 or ✅) -- it depends!
     //                         |
-    //                   parent Job(😡 or ✅) -- it depends!
+    //                   parent (😡 or ✅) -- it depends!
     //                         |
     //                   coroutineScope (Job)(😡)
     //                         |
@@ -89,14 +89,14 @@ class CoroutineScopeBuilderTest {
     fun `coroutineScope as a sub-scope of other coroutine`() = runTest {
         val scope = CoroutineScope(Job())
 
-        val parentJob = scope.launch {
+        val parent = scope.launch {
             try {
                 coroutineScope {
                     onCompletion("coroutineScope")
 
                     launch {
                         delay(500)
-                        throw RuntimeException("oops(❌)")
+                        throw RuntimeException("Oops(❌)")
                     }.onCompletion("child1")
 
                     launch {
@@ -106,9 +106,9 @@ class CoroutineScopeBuilderTest {
             } catch (ex: Exception) {
                 log("Caught: $ex")
             }
-        }.onCompletion("parentJob")
+        }.onCompletion("parent")
 
-        parentJob.join()
+        parent.join()
         scope.completeStatus("scope")
     }
 }

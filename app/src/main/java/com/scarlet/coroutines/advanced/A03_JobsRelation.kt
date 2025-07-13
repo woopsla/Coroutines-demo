@@ -25,6 +25,17 @@ object Dependency_Between_Jobs {
     }
 }
 
+//
+//              Top-level Coroutine
+//                       |
+//              +--------+--------+
+//              |                 |
+//            Parent           Sibling
+//              |
+//      +-------+-------+
+//      |               |
+//  Child1           Child2
+//
 object Jobs_Form_Coroutines_Hierarchy {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
@@ -92,6 +103,13 @@ object In_Hierarchy_Parent_Waits_Until_All_Children_Finish {
  * from and operates independently.
  */
 
+//
+//          runBlocking (Top-level Coroutine)
+//                |                                scope (Real Parent)
+//            parentJob (Adopting Parent)             |
+//                |                                   |
+//                +-------------- child ???-----------+
+
 object In_Hierarchy_Parent_Waits_Until_All_Children_Finish_Another_Demo {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
@@ -101,7 +119,7 @@ object In_Hierarchy_Parent_Waits_Until_All_Children_Finish_Another_Demo {
             log("I’m an adopting parent")
         }.onCompletion("Adopting Parent")
 
-        scope.launch(parentJob) {
+        val child = scope.launch(parentJob) {
             log("\t\tI’m a child")
             delay(1_000)
         }.onCompletion("\t\tChild finished after 1000ms")
@@ -117,6 +135,7 @@ object In_Hierarchy_Parent_Waits_Until_All_Children_Finish_Another_Demo {
 
         parentJob.join()
         log("is parentJob still active after joined? ${parentJob.isActive}")
+        delay(2000)
     }
 }
 

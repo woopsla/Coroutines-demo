@@ -19,7 +19,6 @@ import kotlin.coroutines.EmptyCoroutineContext
  */
 
 object CoroutineContext_01 {
-    @ExperimentalStdlibApi
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
         log(Thread.currentThread().name)
@@ -115,7 +114,7 @@ object CoroutineContext_ContextInheritance_Demo {
             coroutineInfo(1)
 
             // Inherits context from parent scope. If no inherited dispatcher, use Dispatchers.DEFAULT.
-            // launch(CoroutineName("Child Coroutine: launch") + Dispatchers.Default) {
+//            launch(CoroutineName("Child Coroutine: launch") + Dispatchers.Default) {
             launch {
                 coroutineInfo(2)
                 delay(1_000)

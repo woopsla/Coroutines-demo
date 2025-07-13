@@ -6,8 +6,6 @@ import kotlinx.coroutines.*
 
 /**
  * Working solution 3 (Preferable): Use `coroutineScope()`.
- *
- * Because the cancellation process is now straightforward, let's ignore it for now.
  */
 
 object Using_coroutineScope {
@@ -35,6 +33,35 @@ object Using_coroutineScope {
     }
 }
 
+object Parent_Cancellation_When_Using_coroutineScope {
+
+    private suspend fun loadAndCombine(name1: String, name2: String): Image = coroutineScope {
+        val apple = async { loadImage(name1) }.onCompletion("apple")
+        val kiwi = async { loadImage(name2) }.onCompletion("kiwi")
+
+        log("Waiting for two images to combine")
+        combineImages(apple.await(), kiwi.await())
+    }
+
+    @JvmStatic
+    fun main(args: Array<String>) = runBlocking {
+        var image: Image? = null
+
+        val parent = launch {
+            image = loadAndCombine("apple", "kiwi")
+            log("Parent done: image = $image")
+        }.onCompletion("parent")
+
+        delay(200)
+        parent.cancel(CancellationException("Cancel parent coroutine after 500ms"))
+        parent.join()
+
+        log("combined image = $image").also {
+            delay(1_000) // To check what happens to children just in case
+        }
+    }
+}
+
 object Using_coroutineScope_and_when_child_failed1_not_calling_await {
 
     private suspend fun loadAndCombine(name1: String, name2: String): Image = coroutineScope {
@@ -42,8 +69,6 @@ object Using_coroutineScope_and_when_child_failed1_not_calling_await {
         // even if we are not calling `await`.
         val apple = async { loadImageFail(name1) }.onCompletion("apple")
         val kiwi = async { loadImage(name2) }.onCompletion("kiwi")
-
-        delay(1_000) // Not calling `await`
 
         Image("Fake Combined Image")
     }

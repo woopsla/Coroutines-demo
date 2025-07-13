@@ -19,7 +19,7 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * TODO: Use Dispatchers.setMain() to replace Dispatchers.Main.
+ * TODO: Use `Dispatchers.setMain(`) to replace `Dispatchers.Main`.
  */
 
 @ExperimentalCoroutinesApi

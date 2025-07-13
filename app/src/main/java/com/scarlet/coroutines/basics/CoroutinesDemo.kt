@@ -64,5 +64,14 @@ object GeneratorUsingSequence {
         while (prompt()) {
             println("Got result = ${iterator.next()}")
         }
+
+//        anotherWayToUsingSequence()
+    }
+
+    fun anotherWayToUsingSequence() {
+        for (i in fib()) {
+            if (i > 10) break
+            println("$i")
+        }
     }
 }

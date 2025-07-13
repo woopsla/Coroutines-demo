@@ -25,7 +25,7 @@ import java.lang.RuntimeException
 class LaunchEHTest {
 
     private fun failingFunction() {
-        throw RuntimeException("oops(❌)")
+        throw RuntimeException("Oops(❌)")
     }
 
     @Test(expected = RuntimeException::class)
@@ -39,18 +39,18 @@ class LaunchEHTest {
         failingFunction()
     }
 
-    // Both `runBlocking` and `runTest` rethrow only the first propagated uncaught exceptions.
+    // Both `runBlocking` and `runTest` rethrow only the first propagated uncaught exception.
     @Test
     fun `rethrows only the first uncaught exception`() = runTest {
         onCompletion("runTest")
 
         launch {
             delay(10)
-            throw RuntimeException("yellow(\uD83C\uDF15)")
+            throw RuntimeException("Yellow(🌕)")
         }
         launch {
             delay(50)
-            throw IOException("mellow(\uD83C\uDF48)")
+            throw IOException("Mellow(🍈)")
         }
     }
 
@@ -80,9 +80,9 @@ class LaunchEHTest {
     /**
      * `runBlocking` vs. `runTest`
      *
-     * `runBlocking` do not rethrow uncaught exception propagated up to a top-level scope.
+     * `runBlocking` do not rethrow uncaught exception propagated up to a scope (or standalone SupervisorJob/Job).
      *
-     * But, `runTest` do rethrow it.
+     * But, `runTest` do rethrow any uncaught exceptions.
      */
 
     @Test // Try runBlocking ...
@@ -112,7 +112,7 @@ class LaunchEHTest {
      * But, both rethrows the first uncaught exception reached to its own job.
      */
     @Test // Try runBlocking ...
-    fun `Failure of child cancels the parent and its siblings2`() = runBlocking {
+    fun `Failure of child cancels the parent and its siblings2`() = runTest {
         onCompletion("runTest")
 
         val parentJob = launch {

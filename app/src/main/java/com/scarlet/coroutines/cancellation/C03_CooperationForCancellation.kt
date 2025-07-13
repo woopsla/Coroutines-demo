@@ -4,7 +4,7 @@ import com.scarlet.util.log
 import kotlinx.coroutines.*
 
 /**
- * CoroutineScope.{isActive, ensureActive()} and delay()
+ * `CoroutineScope.{isActive, ensureActive()}`, `yield()` and `delay()`
  *
  * Think about how to handle cleanup?
  */
@@ -16,7 +16,7 @@ object UnCooperative_vs_Cooperative_Cancellation {
         var nextPrintTime = startTime
         while (true) {
             if (System.currentTimeMillis() >= nextPrintTime) {
-                println("I'm working..")
+                log("I'm working..")
                 nextPrintTime += 500
             }
         }
@@ -28,7 +28,7 @@ object UnCooperative_vs_Cooperative_Cancellation {
             printTwice()
         }
 
-        delay(1500)
+        delay(1_500)
         log("Cancelling job ...")
         job.cancelAndJoin()
     }

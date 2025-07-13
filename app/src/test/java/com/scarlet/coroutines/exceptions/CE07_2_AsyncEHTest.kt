@@ -14,22 +14,23 @@ import org.junit.Test
 class AsyncEH02Test {
 
     @Test
-    fun `non-root coroutines - exception propagates`() = runTest {
-        onCompletion("runTest")
+    fun `non-root coroutines - exception propagates regardless of await() called or not`() =
+        runTest {
+            onCompletion("runTest")
 
-        val deferred: Deferred<Int> = async { // non root coroutine
-            delay(1_000)
-            throw RuntimeException("oops(❌)") // Exception will be thrown at this point, and propagate to parent
-        }.onCompletion("deferred")
+            val deferred: Deferred<Int> = async { // non root coroutine
+                delay(1_000)
+                throw RuntimeException("Oops(❌)") // Exception will be thrown at this point, and propagate to parent
+            }.onCompletion("deferred")
 
-        // Unlike documentation saying it useless,
-        // exceptions covered, but not considered as handled!!! <-- another surprise!😱
-        try {
-            deferred.await()
-        } catch (ex: Exception) {
-            log("Caught: $ex") // Covered, but not considered as handled
+            // Unlike documentation saying it useless,
+            // exceptions covered, but not considered as handled!!! <-- another surprise!😱
+            try {
+                deferred.await()
+            } catch (ex: Exception) {
+                log("Caught: $ex") // Covered, but not considered as handled
+            }
         }
-    }
 
     @Test
     fun `non-root coroutine propagates, coroutineScope rethrows`() = runTest {
@@ -38,7 +39,7 @@ class AsyncEH02Test {
         coroutineScope {
             val deferred: Deferred<Int> = async { // non root coroutine
                 delay(1_000)
-                throw RuntimeException("oops(❌)")
+                throw RuntimeException("Oops(❌)")
             }.onCompletion("deferred")
 
             try {
@@ -49,16 +50,11 @@ class AsyncEH02Test {
         }
     }
 
-    /**
-     * **Review of Coroutine Exception Handler (CEH)**
-     *
-     * - CEH can handle only _uncaught propagated exceptions_.
-     *      - Only `launch` propagated exceptions are considered.
-     *      - CEH installed in `launch` root coroutines take effect.
-     *      - But, CEH installed in `async` root coroutines _has no effect_ at all!
-     * - CEH should be installed in either _scopes_ or the _root coroutines_.
-     */
-    private val handler = CoroutineExceptionHandler { context, exception ->
+    //////////////////////////////////////////////////////////
+    // Review of Coroutine Exception Handler (CEH)
+    //////////////////////////////////////////////////////////
+
+    private val ehandler = CoroutineExceptionHandler { context, exception ->
         log("Global CEH: Caught $exception, and handled in $context")
     }
 
@@ -66,11 +62,11 @@ class AsyncEH02Test {
     fun `CEH of no use - handler in scope, since async`() = runTest {
         onCompletion("runTest")
 
-        val scope = CoroutineScope(Job() + handler).onCompletion("scope")
+        val scope = CoroutineScope(Job() + ehandler).onCompletion("scope")
 
         val deferred = scope.async(testDispatcher) { // non root coroutine
             delay(1_000)
-            throw RuntimeException("oops(❌)")
+            throw RuntimeException("Oops(❌)")
         }.onCompletion("child")
     }
 
@@ -80,10 +76,10 @@ class AsyncEH02Test {
 
         val scope = CoroutineScope(Job()).onCompletion("scope")
 
-        val deferred = scope.async(handler + testDispatcher) { // root coroutine
+        val deferred = scope.async(ehandler + testDispatcher) { // root coroutine
             async {// non root coroutine
                 delay(1_000)
-                throw RuntimeException("oops(❌)")
+                throw RuntimeException("Oops(❌)")
             }.onCompletion("child")
         }.onCompletion("parent")
     }
@@ -95,7 +91,7 @@ class AsyncEH02Test {
     @Test
     fun `Mixed use - CEH installed in scope`() = runTest {
         onCompletion("runTest")
-        val scope = CoroutineScope(Job() + handler).onCompletion("scope")
+        val scope = CoroutineScope(Job() + ehandler).onCompletion("scope")
 
         val launchJob = scope.launch {// root coroutine
             val deferred: Deferred<Int> = async { // non root coroutine
@@ -120,9 +116,9 @@ class AsyncEH02Test {
         supervisorScope {
             onCompletion("supervisorScope")
 
-            launch(handler) { // root coroutine
+            launch(ehandler) { // root coroutine
                 val deferred: Deferred<Int> = async {// non root coroutine
-                    throw RuntimeException("oops(❌)")
+                    throw RuntimeException("Oops(❌)")
                 }.onCompletion("child")
 
                 try {

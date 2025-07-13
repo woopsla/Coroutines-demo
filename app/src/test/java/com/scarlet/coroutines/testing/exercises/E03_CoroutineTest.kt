@@ -1,4 +1,4 @@
-package com.scarlet.coroutines.testing.intro
+package com.scarlet.coroutines.testing.exercises
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

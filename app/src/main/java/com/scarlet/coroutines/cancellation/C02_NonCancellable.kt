@@ -14,7 +14,7 @@ import java.lang.Exception
  * If we try to suspend, it will throw `CancellationException`.
  */
 
-object Try_Launch_Or_Call_Suspending_Function_in_Canceling_State {
+object Launch_in_Canceling_State_Will_Be_Ignored {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
         val job = launch {
@@ -26,12 +26,34 @@ object Try_Launch_Or_Call_Suspending_Function_in_Canceling_State {
 
                 log("isActive = ${coroutineContext.isActive}, isCancelled = ${coroutineContext.job.isCancelled}")
 
-                // Try to launch new coroutine
+                // Try to launch new coroutine in cancelling state
                 launch { // will be ignored because of immediate cancellation
                     log("Will not be printed")
                     delay(50)
                 }.onCompletion("Jombi")
-                //.join() // will throw cancellation exception and skip the rest
+//                    .join() // will throw cancellation exception and skip the rest
+
+                log("Check whether control flow can reach here ...")
+            }
+        }
+
+        delay(100)
+        job.cancelAndJoin()
+        log("Cancel done")
+    }
+}
+
+object Call_Suspending_Function_in_Canceling_State_Will_Throw_Cancellation_Exception {
+    @JvmStatic
+    fun main(args: Array<String>) = runBlocking {
+        val job = launch {
+            try {
+                delay(200)
+                log("Unreachable code") // because it will be cancelled after 100ms
+            } finally {
+                log("Finally")
+
+                log("isActive = ${coroutineContext.isActive}, isCancelled = ${coroutineContext.job.isCancelled}")
 
                 // Try to call suspending function will throw cancellation exception
                 try {
@@ -50,6 +72,7 @@ object Try_Launch_Or_Call_Suspending_Function_in_Canceling_State {
     }
 }
 
+
 object Call_Suspending_Function_in_Cancelling_State_To_Cleanup {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
@@ -61,9 +84,8 @@ object Call_Suspending_Function_in_Cancelling_State_To_Cleanup {
                 log("Finally")
 
                 // Use `withContext(NonCancellable)`.
-                // DO NOT USE NonCancellable with `launch` or `async`
+                // DO NOT USE `NonCancellable` with `launch` or `async`
                 cleanUp()
-                log("Cleanup done")
             }
         }.onCompletion("Job")
 
@@ -73,7 +95,7 @@ object Call_Suspending_Function_in_Cancelling_State_To_Cleanup {
     }
 
     private suspend fun cleanUp() {
-        log("Cleaning up ...")
+        log("Cleaning up starts ...")
         delay(2_000)
         log("Cleaning up ...done")
     }

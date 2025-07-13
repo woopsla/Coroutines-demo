@@ -7,7 +7,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.io.IOException
-import java.lang.RuntimeException
 
 /**
  * **SupervisorJob** - failing child does not affect the parent and its sibling.
@@ -44,11 +43,20 @@ class LaunchSupervisorJobTest {
     /**
      * Quiz: Who's child1's parent? SupervisorJob or Job?
      */
+    //
+    //       runTest (Job)            SupervisorJob (✅) (
+    //           |                          |
+    //           +--> 😭                 parent (😡)
+    //              parent                  |
+    //                              +-------+-------+
+    //                              |               |
+    //                          child1(🔥)       child2(😡)
+    //
     @Test
     fun `lecture note example - who's child1's parent`() = runTest {
         onCompletion("runTest")
 
-        val parentJob = launch(SupervisorJob()) {
+        val parent = launch(Job()) {
             launch {
                 delay(100)
                 throw IOException("failure(❌)")
@@ -59,14 +67,14 @@ class LaunchSupervisorJobTest {
             }.onCompletion("child2")
         }.onCompletion("parent")
 
-        parentJob.join()
+        parent.join()
     }
 
     //
-    //       scope (Job)           sharedJob (SupervisorJob)
-    //           |                          |
-    //           +-> 😭             +-------+-------+
-    //                              |               |
+    //       scope (Job)            sharedJob (SupervisorJob)
+    //           |                           |
+    //           +-> 😭,😭          +-------+-------+
+    //            child 1 & 2       |               |
     //                          child1(🔥)       child2(✅)
     //
     @Test
@@ -89,11 +97,11 @@ class LaunchSupervisorJobTest {
     }
 
     //
-    //       scope (Job) ---+           sharedJob (SupervisorJob)(✅)
-    //           |          |                |
-    //    +------+-------+  +->😭   +-------+-------+
-    //    |              |          |               |
-    //  child3        child4      child1(🔥)       child2(✅)
+    //       scope (Job✅) ---+            sharedJob (SupervisorJob)(✅)
+    //           |            |                     |
+    //    +------+-------+    +->😭,😭     +-------+-------+
+    //    |              |                 |               |
+    //  child3(✅)    child4(✅)       child1(🔥)      child2(✅)
     //
     @Test
     fun `SupervisorJob in parent context controls only the lifetime of its own children`() =
@@ -124,9 +132,9 @@ class LaunchSupervisorJobTest {
         }
 
     //
-    //   scope (Job)       SupervisorJob
+    //   scope (Job✅)    SupervisorJob
     //      |                  |
-    //      +-> 😭         parent Job(😡)
+    //      +-> 😭         parent(😡)
     //                         |
     //                 +-------+-------+
     //                 |               |
@@ -137,7 +145,7 @@ class LaunchSupervisorJobTest {
         runTest {
             val scope = CoroutineScope(Job()).onCompletion("scope")
             try {
-                val parentJob = scope.launch(SupervisorJob()) {
+                val parent = scope.launch(SupervisorJob()) {
                     launch {
                         delay(100)
                         throw RuntimeException("oops")
@@ -146,13 +154,12 @@ class LaunchSupervisorJobTest {
                     launch {
                         delay(1_000)
                     }.onCompletion("child2")
-                }.onCompletion("parentJob")
+                }.onCompletion("parent")
 
-                parentJob.join()
+                parent.join()
 
             } catch (ex: Exception) {
                 log("Exception caught: $ex") // Useless
             }
         }
-
 }

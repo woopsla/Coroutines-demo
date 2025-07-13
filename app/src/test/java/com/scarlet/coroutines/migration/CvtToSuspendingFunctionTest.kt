@@ -22,7 +22,7 @@ class CvtToSuspendingFunctionTest {
     @MockK
     lateinit var mockApi: RecipeApi
 
-    @MockK(relaxed = true)
+    @MockK(relaxed = true) // or use @RelaxedMockK
     lateinit var mockCall: Call<List<Recipe>>
 
     @MockK
@@ -37,11 +37,11 @@ class CvtToSuspendingFunctionTest {
     @Test
     fun `Callback - should return valid recipes`() {
         // Arrange (Given)
-        val slot = slot<Callback<List<Recipe>>>()
         every { mockResponse.isSuccessful } returns true
         every { mockResponse.body() } returns mRecipes
-        every { mockCall.enqueue(capture(slot)) } answers {
-            slot.captured.onResponse(mockCall, mockResponse)
+        every { mockCall.enqueue(any()) } answers {
+            val callback = firstArg<Callback<List<Recipe>>>()
+            callback.onResponse(mockCall, mockResponse)
         }
 
         val target = UsingCallback_Demo2
@@ -62,11 +62,11 @@ class CvtToSuspendingFunctionTest {
     @Test
     fun `Suspending Function - should return valid recipes`() = runTest {
         // Arrange (Given)
-        val slot = slot<Callback<List<Recipe>>>()
         every { mockResponse.isSuccessful } returns true
         every { mockResponse.body() } returns mRecipes
-        every { mockCall.enqueue(capture(slot)) } answers {
-            slot.captured.onResponse(mockCall, mockResponse)
+        every { mockCall.enqueue(any()) } answers {
+            val callback = firstArg<Callback<List<Recipe>>>()
+            callback.onResponse(mockCall, mockResponse)
         }
 
         val target = CvtToSuspendingFunction_Demo2
@@ -81,14 +81,14 @@ class CvtToSuspendingFunctionTest {
     @Test
     fun `Suspending Function - should cancel searchRecipes`() = runBlocking {
         // Arrange (Given)
-        val slot = slot<Callback<List<Recipe>>>()
         every { mockResponse.isSuccessful } returns true
         every { mockResponse.body() } returns mRecipes
         every {
-            mockCall.enqueue(capture(slot))
+            mockCall.enqueue(any())
         } answers {
+            val callback = firstArg<Callback<List<Recipe>>>()
             newSingleThreadScheduledExecutor().schedule({
-                slot.captured.onResponse(mockCall, mockResponse)
+                callback.onResponse(mockCall, mockResponse)
             }, 1, TimeUnit.SECONDS)
         }
 

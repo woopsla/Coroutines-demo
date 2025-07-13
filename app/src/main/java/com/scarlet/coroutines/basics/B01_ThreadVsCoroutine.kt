@@ -7,7 +7,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.concurrent.thread
-import kotlin.system.exitProcess
 import kotlin.system.measureTimeMillis
 
 object Threads {
@@ -46,10 +45,8 @@ object ThreadVsCoroutine {
     @DelicateCoroutinesApi
     @JvmStatic
     fun main(args: Array<String>) {
-//        threads()
-//        exitProcess(0); // force to exit the program
-
-        coroutines()
+        threads()
+//        coroutines()
     }
 
     // Main function waits for background work to finish
@@ -75,9 +72,8 @@ object ThreadVsCoroutine {
             log("Background work ends: ${Thread.currentThread().name}")
         }
 
-//        Thread.sleep(2_000) // wait for 2 seconds
-
         log("Main program ends: ${Thread.currentThread().name}")
+//        Thread.sleep(2_000) // wait for 2 seconds
     }
 
 }

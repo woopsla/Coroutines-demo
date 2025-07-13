@@ -11,13 +11,13 @@ import java.lang.RuntimeException
 class SupervisorScopeBuilderTest {
 
     /**
-     * `supervisorScope` has a `SupervisorJob()` and acts as a parent of root coroutines.
+     * `supervisorScope` has a `SupervisorJob()` and acts as a parent of _root coroutines_.
      *
-     * Unlike `coroutineScope`, `supervisorScope` does not rethrow an uncaught exception.
-     * - Failure of a child coroutine does not propagate to its parent.
+     * Unlike `coroutineScope`, `supervisorScope` does not rethrow propagated uncaught exceptions.
+     * - Failure of a child coroutine does not propagate to `supervisorScope`'s parent.
      *
      * In App, `supervisorScope` needs an installed `CoroutineExceptionHandler` in
-     * its root coroutines, otherwise the `supervisorScope` will fail anyway causing crash.
+     * its root coroutines or scope, otherwise the `supervisorScope` will fail anyway causing crash.
      * That's because a scope always looks for an installed exception handler. If it
      * can't find any, it fails (by calling current thread's `Thread.uncaughtExceptionHandler`).
      * - **Recommendation** by Jungsun: Always install a CEH when using `supervisorScope`.
@@ -70,7 +70,7 @@ class SupervisorScopeBuilderTest {
     }
 
     @Test
-    fun `supervisorScope does not rethrow propagated exceptions so catch is useless`() =
+    fun `supervisorScope does not rethrow propagated exceptions so catching is useless`() =
         runTest {
             onCompletion("runTest")
 
@@ -89,22 +89,6 @@ class SupervisorScopeBuilderTest {
                 log("Caught: $ex") // useless
             }
         }
-
-    @Test
-    fun `supervisorScope - failed child doesn't affect its parent nor siblings`() = runTest {
-        supervisorScope {
-            onCompletion("supervisorScope")
-
-            launch {
-                delay(100)
-                throw RuntimeException("oops(❌)")
-            }.onCompletion("child1")
-
-            launch {
-                delay(200)
-            }.onCompletion("child2")
-        }
-    }
 
     @Test
     fun `supervisorScope rethrows its own exceptions including cancellation`() = runTest {
@@ -139,7 +123,6 @@ class SupervisorScopeBuilderTest {
                 delay(100)
 
                 coroutineContext.cancel(CancellationException("Intentional cancellation(\uD83D\uDE4F\uD83C\uDFFC)"))
-//                coroutineContext.cancelChildren()
             }
         } catch (ex: Exception) {
             log("Caught: $ex")

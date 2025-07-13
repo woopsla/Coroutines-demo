@@ -26,85 +26,70 @@ class CoActivity : AppCompatActivity() {
 
         prepareFakeData()
 
-        Log.d(TAG, "[onCreate] massive launching started ...")
-
         /*
          * Use either `lifecycleScope` or `lifecycle.coroutineScope`
          */
 
+        Log.e(TAG, "[onCreate] launching started ...")
         lifecycle.coroutineScope.launch {
-            Log.d(TAG, "launch started")
+            Log.e(TAG, "launch started")
             val recipes = apiService.getRecipes()
-            Log.d(TAG, "recipes in launch = $recipes")
+            Log.e(TAG, "recipes in launch = $recipes")
         }.invokeOnCompletion {
-            Log.d(TAG, "launch completed: $it")
+            Log.e(TAG, "launch completed: $it")
         }
 
-        lifecycleScope.launchWhenCreated {
-            Log.d(TAG, "launchWhenCreated started")
-            val recipes = apiService.getRecipes()
-            Log.d(TAG, "recipes in launchWhenCreated = $recipes")
-        }.invokeOnCompletion {
-            Log.d(TAG, "launchWhenCreated completed: $it")
-        }
+        /*
+         * Deprecated methods:
+         * - lifecycleScope.{launchWhenCreated, launchWhenStarted, launchWhenResumed}
+         *
+         * Use `lifecycle.repeatOnLifecycle` instead.
+         */
 
-        lifecycleScope.launchWhenStarted {
-            Log.d(TAG, "${spaces(2)}launchWhenStarted started")
-            val recipes = apiService.getRecipes()
-            Log.d(TAG, "${spaces(2)}recipes in launchWhenStarted = $recipes")
-        }.invokeOnCompletion {
-            Log.d(TAG, "${spaces(2)}launchWhenStarted completed: $it")
-        }
-
-        lifecycleScope.launchWhenResumed {
-            Log.d(TAG, "${spaces(4)}launchWhenResumed started")
-            val recipes = apiService.getRecipes()
-            Log.d(TAG, "${spaces(4)}recipes in launchWhenResumed = $recipes")
-        }.invokeOnCompletion {
-            Log.d(TAG, "${spaces(4)}launchWhenResumed completed: $it")
-        }
-
-        lifecycleScope.launch {
-            Log.d(TAG, "repeatOnLifecycle launched")
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                Log.d(TAG, "${spaces(4)}repeatOnLifeCycle at RESUMED started")
-                val recipes = apiService.getRecipes()
-                Log.d(TAG, "${spaces(4)}recipes in repeatOnLifeCycle = $recipes")
-            }
-            Log.e(TAG, "See when i am printed ...")
-        }.invokeOnCompletion {
-            Log.d(TAG, "launch for repeatOnLifeCycle completed: $it")
-        }
+//        lifecycleScope.launch {
+//            Log.e(TAG, "repeatOnLifecycle launched, job = ${coroutineContext[Job]}")
+//            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+//                Log.e(
+//                    TAG,
+//                    "${spaces(4)}repeatOnLifeCycle at RESUMED started, job = ${coroutineContext[Job]}"
+//                )
+//                val recipes = apiService.getRecipes()
+//                Log.e(TAG, "${spaces(4)}recipes in repeatOnLifeCycle = $recipes")
+//            }
+//            Log.e(TAG, "See when i am printed ...")
+//        }.invokeOnCompletion {
+//            Log.e(TAG, "launch for repeatOnLifeCycle completed: $it")
+//        }
     }
 
     private fun prepareFakeData() {
-        FakeRemoteDataSource.FAKE_NETWORK_DELAY = 3_000
+        FakeRemoteDataSource.FAKE_NETWORK_DELAY = 1_000
         apiService.addRecipes(mRecipes)
     }
 
     override fun onStart() {
         super.onStart()
-        Log.d(TAG, "[onStart]")
+        Log.e(TAG, "[onStart]")
     }
 
     override fun onStop() {
         super.onStop()
-        Log.d(TAG, "[onStop]")
+        Log.e(TAG, "[onStop]")
     }
 
     override fun onPause() {
         super.onPause()
-        Log.d(TAG, "[onPause]")
+        Log.e(TAG, "[onPause]")
     }
 
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "[onResume]")
+        Log.e(TAG, "[onResume]")
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "[onDestroy]")
+        Log.e(TAG, "[onDestroy]")
     }
 
     companion object {

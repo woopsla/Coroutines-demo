@@ -7,7 +7,7 @@ import com.scarlet.util.onCompletion
 import kotlinx.coroutines.*
 
 /**
- * GlobalScope demo - Not Recommended.
+ * `GlobalScope` demo - Not Recommended.
  */
 
 private suspend fun loadAndCombine(name1: String, name2: String): Image {
@@ -41,7 +41,7 @@ object Even_If_Parent_Cancelled_Children_Keep_Going {
             log("parent done.")
         }.onCompletion("parent")
 
-        delay(500)
+        delay(200)
         log("Cancel parent coroutine after 500ms")
         parent.cancelAndJoin()
 

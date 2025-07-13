@@ -1,7 +1,6 @@
 package com.scarlet.coroutines.advanced
 
 import com.scarlet.util.coroutineInfo
-import com.scarlet.util.delim
 import com.scarlet.util.log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +26,8 @@ object Dispatchers_Main_Failure_Demo {
         val scope = CoroutineScope(Job() + Dispatchers.Main)
 
         scope.launch {
-            delay(1000)
+            log("Hello from child coroutine")
+            delay(1_000)
         }.join()
 
         log("Done.")
@@ -35,16 +35,14 @@ object Dispatchers_Main_Failure_Demo {
 }
 
 /**
- * The Kotlin Coroutines framework uses the Default dispatcher as the default CoroutineDispatcher.
- * This means that Kotlin will use the Default dispatcher if we don’t specify one explicitly.
+ * The Kotlin Coroutines framework uses the `Default` dispatcher as the default `CoroutineDispatcher`.
+ * This means that Kotlin will use the `Default` dispatcher if we don’t specify one explicitly.
  *
- * The Default dispatcher is backed by a shared pool of threads. The maximum number of threads used
- * by this dispatcher is equal to the number of CPU cores available to the system but is always at
- * least two.
+ * The `Default` dispatcher is backed by a shared pool of threads. The maximum number of threads used
+ * by this dispatcher is equal to the number of CPU cores available to the system
+ * (`Runtime.getRuntime().availableProcessors()`) but is always _at least two_.
  *
  * Suitable for CPU-bound tasks that require a lot of computation and benefit from parallelism.
- * Short-running calculations and small-scale data processing tasks are the ideal candidates for
- * running on the Default dispatcher.
  */
 object DefaultDispatchers_Demo {
     @JvmStatic
@@ -54,7 +52,7 @@ object DefaultDispatchers_Demo {
         repeat(50) {
             launch(Dispatchers.Default) {
                 // To make it busy
-                val max = List(1_000) { Random.nextInt(1000) }.maxOrNull()
+                val max = List(1_000) { Random.nextInt(1_000) }.maxOrNull()
 
                 log("max = $max")
             }
@@ -84,8 +82,8 @@ object IODispatchers_Demo {
 }
 
 /**
- * IO dispatcher shares threads with a Dispatchers.Default dispatcher, so using
- * withContext(Dispatchers.IO) { ... } does not lead to an actual switching to another thread.
+ * IO dispatcher shares threads with a `Dispatchers.Default` dispatcher, so using
+ * `withContext(Dispatchers.IO) { ... }` does not lead to an actual switching to another thread.
  */
 object ThreadSharing_Demo {
     @JvmStatic
@@ -108,6 +106,12 @@ object ThreadSharing_Demo {
  * the initial continuation of a coroutine in the current call-frame and lets the
  * coroutine resume in whatever thread that is used by the corresponding suspending
  * function, without mandating any specific threading policy.
+ *
+ * In another words, it executes coroutine immediately on the current thread and later
+ * resumes it in whatever thread called `resume`.
+ *
+ * Nested coroutines launched in this dispatcher form an event-loop to avoid stack
+ * overflows.
  */
 object Unconfined_Dispatchers_Demo {
 
@@ -115,8 +119,8 @@ object Unconfined_Dispatchers_Demo {
     fun main(args: Array<String>) = runBlocking {
         launch(CoroutineName("Main")) {
             coroutineInfo(1)
-//            withContext(Dispatchers.Unconfined + CoroutineName("Unconfined")) {
-            withContext(CoroutineName("Unconfined")) {
+            withContext(Dispatchers.Unconfined + CoroutineName("Unconfined")) {
+//            withContext(CoroutineName("Unconfined")) {
                 coroutineInfo(2)
 
                 delay(1_000)
@@ -139,7 +143,7 @@ private suspend fun someSuspendingFunction(dispatcher: CoroutineDispatcher) =
     }
 
 /**
- * newSingleThreadContext and newFixedThreadPoolContext
+ * `newSingleThreadContext` and `newFixedThreadPoolContext`
  */
 @DelicateCoroutinesApi
 @ExperimentalCoroutinesApi
@@ -175,10 +179,10 @@ object Custom_Dispatchers_Demo {
 }
 
 /**
- * Homework: Please check `limitedParallelism` function for yourself.
+ * **Homework**: Please check `limitedParallelism` function for yourself.
  * https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-dispatcher/limited-parallelism.html
  *
- *  fun limitedParallelism(parallelism: Int): CoroutineDispatcher
+ *  `fun limitedParallelism(parallelism: Int): CoroutineDispatcher`
  */
 object limitedParallelism_Demo {
     @JvmStatic
