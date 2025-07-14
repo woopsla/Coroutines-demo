@@ -9,10 +9,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 
 /**
- * Dispatcher.Unconfined seems to ignore `yield`.
+ * `Dispatcher.Unconfined` seems to ignore `yield`.
  */
 object Default_Starting_Mode {
-    fun default_start_mode() = runBlocking {
+
+    @JvmStatic
+    fun main(args: Array<String>) = runBlocking {
         var state = 0
 
         // Change the dispatcher to Dispatchers.Unconfined
@@ -31,15 +33,12 @@ object Default_Starting_Mode {
         delay(500)
         log("parent after delay: state = $state")
     }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        default_start_mode()
-    }
 }
 
 object Undispatched_Starting_Mode {
-    fun default_start_mode() = runBlocking {
+
+    @JvmStatic
+    fun main(args: Array<String>) = runBlocking {
         var state = 0
 
         // Change the dispatcher to Dispatchers.Unconfined
@@ -49,8 +48,7 @@ object Undispatched_Starting_Mode {
             yield()
             state = 2
             log("child after yield: state = $state")
-            yield()
-//            delay(1_000)
+            delay(1_000)
             state = 3
             log("child after 1000ms: state = $state")
         }
@@ -58,10 +56,5 @@ object Undispatched_Starting_Mode {
         log("parent before delay: state = $state")
         delay(500)
         log("parent after delay: state = $state")
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        default_start_mode()
     }
 }
