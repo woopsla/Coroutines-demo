@@ -60,13 +60,13 @@ dependencies {
     implementation "androidx.room:room-ktx:$room_version"
     ksp "androidx.room:room-compiler:$room_version"
 
-    def retrofit_version = '2.11.0'
+    def retrofit_version = '3.0.0'
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
-    def okHttp_version = '5.0.0-alpha.14'
+    def okHttp_version = '5.1.0'
     implementation "com.squareup.okhttp3:logging-interceptor:$okHttp_version"
 
-    def coroutines_version = '1.10.1'
+    def coroutines_version = '1.10.2'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-swing:$coroutines_version"
@@ -95,7 +95,7 @@ dependencies {
     testImplementation "junit:junit:$junit_version"
     androidTestImplementation "junit:junit:$junit_version"
 
-    def mockk_version = '1.13.16'
+    def mockk_version = '1.14.4'
     testImplementation "io.mockk:mockk:$mockk_version"
     androidTestImplementation "io.mockk:mockk-android:$mockk_version"
 
