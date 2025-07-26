@@ -3,6 +3,7 @@ package com.scarlet.coroutines.testing.version3
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.common.truth.Truth.assertThat
 import com.scarlet.coroutines.testing.ApiService
+import com.scarlet.coroutines.testing.CoroutineTestRule
 import com.scarlet.model.Article
 import com.scarlet.util.Resource
 import com.scarlet.util.getValueForTest
@@ -26,6 +27,8 @@ class CoroutineTestRuleTest {
     val rule = InstantTaskExecutorRule()
 
     // TODO: Add a test for the coroutineTestRule
+    @get:Rule
+    val coroutineTestRule = CoroutineTestRule()
 
     private val testArticles = Resource.Success(Article.articleSamples)
 
@@ -35,9 +38,7 @@ class CoroutineTestRuleTest {
     // SUT
     private lateinit var viewModel: ArticleViewModel
 
-    private val testDispatcher = StandardTestDispatcher()
-
-    @Before
+    @Before // Test Fixture
     fun init() {
         MockKAnnotations.init(this)
 
@@ -45,13 +46,6 @@ class CoroutineTestRuleTest {
             delay(3_000)
             testArticles
         }
-
-        Dispatchers.setMain(testDispatcher)
-    }
-
-    @After
-    fun teardown() {
-        Dispatchers.resetMain()
     }
 
     @Test

@@ -46,8 +46,8 @@ class MythMainActivity : AppCompatActivity() {
             showSnackBar("Launching findBigPrime ...")
 
             primeJob = lifecycleScope.launch {
-                val primeNumber = findBigPrime_Wish_To_Be_NonBlocking()
-//                val primeNumber = findBigPrime_ProperWay()
+//                val primeNumber = findBigPrime_Wish_To_Be_NonBlocking()
+                val primeNumber = findBigPrime_ProperWay()
                 status.text = primeNumber.toString()
                 findButton.isEnabled = true
                 cancelButton.isEnabled = false

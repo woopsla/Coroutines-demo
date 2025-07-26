@@ -14,7 +14,7 @@ import kotlinx.coroutines.*
 
 object CoroutineScope_Has_Context {
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
+    fun main(args: Array<String>) = runBlocking<Unit> {
         val scope = CoroutineScope(Job() + CoroutineName("My Scope"))
         scopeInfo(scope, 0)
 
@@ -34,6 +34,8 @@ object CoroutineScope_Has_Context {
 object Canceling_Scope_Cancels_It_and_Its_Job {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
+        coroutineContext.job.onCompletion("runBlocking")
+
         val scope = CoroutineScope(CoroutineName("My Scope"))
         // New job gets created if not provided explicitly
         if (scope.coroutineContext[Job] != null) {
@@ -148,6 +150,7 @@ object GlobalScope_Cancellation_Demo {
 object GlobalScope_Cancellation_Demo2 {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
+
         val job1 = GlobalScope.launch(CoroutineName("Parent 1")) {
             log("GlobalScope is active")
             launch(CoroutineName("Child 1")) { delay(1_000) }.onCompletion("Child 1")

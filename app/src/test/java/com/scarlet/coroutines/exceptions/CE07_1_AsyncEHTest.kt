@@ -128,11 +128,11 @@ class AsyncEH01Test {
             }.onCompletion("sibling")
 
             // Comment out the entire try block and see whether exception still happens.
-            try {
-                parent.await()
-            } catch (ex: Exception) {
-                log("Caught: $ex")
-            }
+//            try {
+//                parent.await()
+//            } catch (ex: Exception) {
+//                log("Caught: $ex")
+//            }
 
             sibling.join()
         }
@@ -142,7 +142,7 @@ class AsyncEH01Test {
     // - Direct child of `supervisorScope`
     ///////////////////////////////////////////////////////////////////////////////////
 
-    @Test
+    @Test // ??? not consistent, compared with `launch`
     fun `direct child of supervisorScope`() =
         runTest {
             onCompletion("runTest")
@@ -151,7 +151,7 @@ class AsyncEH01Test {
                 onCompletion("supervisorScope")
 
                 // `launch` will make test fail, but `async` will not!
-                val deferred = async(ehandler) { // root coroutine, ehandler of no use
+                val deferred = async { // root coroutine, ehandler of no use
                     delay(1_000)
                     throw RuntimeException("Oops(❌)") // exposed exception
                 }.onCompletion("child")
@@ -162,11 +162,11 @@ class AsyncEH01Test {
                 }.onCompletion("sibling")
 
                 // Uncomment the `try-catch` and see what happens.
-                try {
-                    deferred.await()
-                } catch (ex: Exception) {
-                    log("Caught: $ex")
-                }
+//                try {
+//                    deferred.await()
+//                } catch (ex: Exception) {
+//                    log("Caught: $ex")
+//                }
             }
         }
 
@@ -177,9 +177,10 @@ class AsyncEH01Test {
     fun `root coroutine - exposed exception - another example`() = runTest {
         onCompletion("runTest")
 
-        val scope = CoroutineScope(Job() + ehandler).onCompletion("scope")
+        val scope = CoroutineScope(Job()).onCompletion("scope")
 
         val parent = scope.launch { // root coroutine
+
             val deferred: Deferred<Unit> = scope.async { // root coroutine, too
                 delay(100)
                 throw RuntimeException("Oops(❌)")

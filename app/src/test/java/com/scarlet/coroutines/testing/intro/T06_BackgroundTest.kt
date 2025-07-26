@@ -19,7 +19,7 @@ class T06_BackgroundTest {
         val channel = Channel<Int>()
 
         // What the problem with this code? How to fix it?
-        launch {
+        backgroundScope.launch {
             var i = 0
             while (true) {
                 channel.send(i++)

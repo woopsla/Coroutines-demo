@@ -31,22 +31,22 @@ object Launch_Demo2 {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        log("X. Start")
+        log("1. Start")
 
         runBlocking {
             launch {
                 delay(1_000)
-                log("X. child 1 done.")
+                log("3. child 1 done.")
             }
             launch {
                 delay(2_000)
-                log("X. child 2 done.")
+                log("4. child 2 done.")
             }
 
-            log("X. end of runBlocking")
+            log("2. end of runBlocking")
         }
 
-        log("X. Done")
+        log("5. Done")
     }
 }
 
@@ -56,13 +56,14 @@ object Launch_Join_Demo {
     fun main(args: Array<String>) = runBlocking {
         log("1. start of runBlocking")
 
-        launch {
+        val job = launch {
             log("2. child 1 start")
             delay(1_000)
             log("3. child 1 done")
         }
 
         // How to print next line at the last?
+        job.join()
         log("4. Done")
     }
 }
@@ -79,7 +80,7 @@ object GlobalScope_Demo {
             log("2. before save")
             save(User("A001", "Jody", 33))
             log("3. after save")
-        }//.join()
+        }.join()
 
         log("4. Done.")
     }
@@ -105,7 +106,7 @@ object CoroutineScope_Sneak_Preview_Demo {
 
         // force the main thread wait
 //        Thread.sleep(2_000)
-//        runBlocking { job.join() }
+        runBlocking { job.join() }
 
         log("3. Done.")
     }

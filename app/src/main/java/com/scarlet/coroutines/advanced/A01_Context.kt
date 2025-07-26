@@ -25,8 +25,8 @@ object CoroutineContext_01 {
         log("CoroutineContext  = $coroutineContext")
         log("Name              = ${coroutineContext[CoroutineName]}")
         log("Job               = ${coroutineContext[Job]}")
-        log("Dispatcher        = ${coroutineContext[ContinuationInterceptor]}")
-        log("Dispatcher        = ${coroutineContext[ContinuationInterceptor] as CoroutineDispatcher}")
+//        log("Dispatcher        = ${coroutineContext[ContinuationInterceptor]}")
+//        log("Dispatcher        = ${coroutineContext[ContinuationInterceptor] as CoroutineDispatcher}")
         log("Dispatcher        = ${coroutineContext[CoroutineDispatcher]}")
         log("Exception handler = ${coroutineContext[CoroutineExceptionHandler]}")
     }

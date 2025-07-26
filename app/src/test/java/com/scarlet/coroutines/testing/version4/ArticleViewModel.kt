@@ -6,12 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scarlet.coroutines.testing.ApiService
 import com.scarlet.model.Article
+import com.scarlet.util.DefaultDispatcherProvider
+import com.scarlet.util.DispatcherProvider
 import com.scarlet.util.Resource
 import kotlinx.coroutines.*
 
 class ArticleViewModel(
     private val apiService: ApiService,
-//    private val dispatchers: DispatcherProvider = DefaultDispatcherProvider()
+    private val dispatchers: DispatcherProvider = DefaultDispatcherProvider()
 ) : ViewModel() {
 
     private val _articles = MutableLiveData<Resource<List<Article>>>()
@@ -31,7 +33,7 @@ class ArticleViewModel(
     }
 
     private suspend fun networkRequest(): Resource<List<Article>> {
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatchers.io) {
             apiService.getArticles()
         }
     }
@@ -41,7 +43,7 @@ class ArticleViewModel(
     }
 
     private suspend fun doLongRunningCalculation() {
-        withContext(Dispatchers.Default) {
+        withContext(dispatchers.default) {
             delay(1_000)
         }
     }

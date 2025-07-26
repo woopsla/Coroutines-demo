@@ -258,6 +258,7 @@ object Timeout {
                 delay(2_000)
                 log("Will not be printed")
             }.onCompletion("grandchild")
+
             withTimeout(1_000) { // we cancel launch
                 delay(1_500)
             }

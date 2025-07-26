@@ -3,6 +3,7 @@ package com.scarlet.coroutines.cancellation
 import com.scarlet.util.log
 import com.scarlet.util.onCompletion
 import kotlinx.coroutines.*
+import okhttp3.internal.http2.FlowControlListener
 import java.lang.Exception
 
 /**
@@ -31,7 +32,7 @@ object Launch_in_Canceling_State_Will_Be_Ignored {
                     log("Will not be printed")
                     delay(50)
                 }.onCompletion("Jombi")
-//                    .join() // will throw cancellation exception and skip the rest
+                    .join() // will throw cancellation exception and skip the rest
 
                 log("Check whether control flow can reach here ...")
             }
@@ -61,8 +62,12 @@ object Call_Suspending_Function_in_Canceling_State_Will_Throw_Cancellation_Excep
                     log("Will not be printed")
                 } catch (ex: Exception) {
                     log("Caught: $ex")
+                    if (ex is CancellationException) {
+                        throw ex
+                    }
                 }
                 // Nevertheless, if you want to call suspending function to clean up ... how to do?
+                log("Check whether control flow can reach here ...")
             }
         }
 
@@ -85,12 +90,14 @@ object Call_Suspending_Function_in_Cancelling_State_To_Cleanup {
 
                 // Use `withContext(NonCancellable)`.
                 // DO NOT USE `NonCancellable` with `launch` or `async`
-                cleanUp()
+                withContext(NonCancellable) {
+                    cleanUp()
+                }
             }
         }.onCompletion("Job")
 
-        delay(100)
-        job.cancelAndJoin()
+//        delay(100)
+//        job.cancelAndJoin()
         log("Cancel done")
     }
 

@@ -5,6 +5,7 @@ import com.scarlet.model.Article
 import com.scarlet.util.log
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
@@ -42,7 +43,7 @@ class RunBlockingVsRunTest {
     @Test
     fun `runBlocking demo`() = runBlocking {
         // Given
-        coEvery {
+        coEvery { // Stubbing
             mockArticleService.getArticle(any())
         } coAnswers {
             delay(2_000) // fake network delay

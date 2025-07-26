@@ -15,15 +15,23 @@ class CoroutineTestRule(
     /*
      * testDispatchersProvider goes here
      */
-    val testDispatcherProvider: DispatcherProvider = TODO()
+    val testDispatcherProvider: DispatcherProvider = object : DispatcherProvider {
+        override val main = testDispatcher
+        override val mainImmediate = testDispatcher
+        override val default = testDispatcher
+        override val io = testDispatcher
+        override val unconfined = testDispatcher
+    }
 
     override fun starting(description: Description) {
         super.starting(description)
+
         Dispatchers.setMain(testDispatcher)
     }
 
     override fun finished(description: Description) {
         super.finished(description)
+
         Dispatchers.resetMain()
     }
 }

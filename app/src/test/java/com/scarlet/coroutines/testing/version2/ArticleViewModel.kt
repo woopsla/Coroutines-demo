@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
 
 class ArticleViewModel(
     private val apiService: ApiService,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val _articles = MutableLiveData<Resource<List<Article>>>()

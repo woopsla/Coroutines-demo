@@ -1,16 +1,24 @@
 package com.scarlet.coroutines.testing.version1
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.common.truth.Truth.assertThat
 import com.scarlet.coroutines.testing.ApiService
 import com.scarlet.model.Article
 import com.scarlet.util.Resource
 import com.scarlet.util.getValueForTest
+import com.scarlet.util.testDispatcher
+import io.mockk.MockKAnnotations
 import io.mockk.coEvery
+import io.mockk.impl.annotations.MockK
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 /**
@@ -21,11 +29,14 @@ import org.junit.Test
 class ArticleViewModelTest {
 
     // TODO - InstantTaskExecutorRule
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     // SUT
     private lateinit var viewModel: ArticleViewModel
 
     // TODO
+    @MockK
     private lateinit var apiService: ApiService
 
     // sample test data
@@ -34,6 +45,7 @@ class ArticleViewModelTest {
     @Before
     fun init() {
         // TODO() - initialize mocks
+        MockKAnnotations.init(this)
 
         coEvery { apiService.getArticles() } coAnswers {
             delay(3_000)
@@ -73,12 +85,12 @@ class ArticleViewModelTest {
     @Test
     fun `onButtonClicked - test fun creating new coroutines - runTest`() = runTest {
         // Given
-        viewModel = ArticleViewModel(apiService)
+        viewModel = ArticleViewModel(apiService, testDispatcher)
 
         // When
         viewModel.onButtonClicked()
 
-        delay(10_000) // Will this help?
+        advanceUntilIdle() // Will this help?
 
         // Then
         val articles = viewModel.articles.getValueForTest()

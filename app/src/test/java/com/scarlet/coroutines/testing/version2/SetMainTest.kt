@@ -7,13 +7,16 @@ import com.scarlet.model.Article
 import com.scarlet.util.Resource
 import com.scarlet.util.getValueForTest
 import com.scarlet.util.log
+import com.scarlet.util.testDispatcher
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.*
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,6 +40,7 @@ class SetMainTest {
     private lateinit var viewModel: ArticleViewModel
 
     // TODO: Create a test dispatcher
+    private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun init() {
@@ -47,6 +51,13 @@ class SetMainTest {
             delay(3_000)
             testArticles
         }
+
+        Dispatchers.setMain(testDispatcher)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain() // reset the main dispatcher to the original Main dispatcher
     }
 
     @Test

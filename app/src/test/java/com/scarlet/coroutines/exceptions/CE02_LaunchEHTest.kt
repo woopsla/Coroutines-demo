@@ -1,5 +1,6 @@
 package com.scarlet.coroutines.exceptions
 
+import com.scarlet.coroutines.advanced.foo
 import com.scarlet.util.completeStatus
 import com.scarlet.util.log
 import com.scarlet.util.onCompletion
@@ -54,18 +55,22 @@ class LaunchEHTest {
         }
     }
 
+    private suspend fun failingFunction2() {
+        throw RuntimeException("Oops(❌)")
+    }
+
     @Test
     fun `can handle rethrown exception on site using try-catch`() = runTest {
         launch {
             try {
-                failingFunction()
+                failingFunction2()
             } catch (ex: Exception) {
                 log("Caught $ex")
             }
         }
     }
 
-    @Test(expected = RuntimeException::class)
+    @Test//(expected = RuntimeException::class)
     fun `propagated exception from nested coroutines cannot be handled on site using try-catch`() =
         runTest {
             try {
@@ -112,7 +117,7 @@ class LaunchEHTest {
      * But, both rethrows the first uncaught exception reached to its own job.
      */
     @Test // Try runBlocking ...
-    fun `Failure of child cancels the parent and its siblings2`() = runTest {
+    fun `Failure of child cancels the parent and its siblings2`() = runBlocking {
         onCompletion("runTest")
 
         val parentJob = launch {

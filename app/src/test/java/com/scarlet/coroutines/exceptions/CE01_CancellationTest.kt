@@ -46,7 +46,7 @@ class CancellationTest {
         }.onCompletion("job")
 
         delay(100)
-//        job.cancelAndJoin()
+        job.cancelAndJoin()
     }
 
     @Test
@@ -117,10 +117,10 @@ class CancellationTest {
                     throw ex
                 }
             }
-
             log("All subsequent computations will be skipped ...")
             networkRequestUncooperative() // long running computation
             log("This will not be printed")
+
 
         }.onCompletion("job")
 

@@ -37,7 +37,7 @@ class VirtualTimeControlTest {
             }
 
             // What `state` value should we compare with to make the test pass? 0 or 1?
-//            assertThat(state).isEqualTo(TODO())
+            assertThat(state).isEqualTo(1)
             log("$currentTime")
         }
 
@@ -59,17 +59,18 @@ class VirtualTimeControlTest {
         assertThat(count).isEqualTo(0)
         log("$currentTime")
 
-//        advanceTimeBy(1_000);
-//        log("$currentTime")
-//        assertThat(count).isEqualTo(1)
-//
+        advanceTimeBy(1_000);
+        log("$currentTime"); runCurrent()
+        assertThat(count).isEqualTo(1)
+
+        advanceTimeBy(1_000); runCurrent()
+        log("$currentTime")
+        assertThat(count).isEqualTo(3)
+
 //        advanceTimeBy(1_000); runCurrent()
-//        log("$currentTime")
-//        assertThat(count).isEqualTo(3)
-//
-//        advanceTimeBy(1_000); runCurrent()
-//        log("$currentTime")
-//        assertThat(count).isEqualTo(5)
+        advanceUntilIdle()
+        log("$currentTime")
+        assertThat(count).isEqualTo(5)
     }
 
     @Test
@@ -89,15 +90,15 @@ class VirtualTimeControlTest {
         assertThat(state).isEqualTo(1)
         log("$currentTime")
 
-        // `runCurrent` run any tasks that are pending at or before the current virtual clock-time.
-        // Calling this function will never advance the clock.
+//        // `runCurrent` run any tasks that are pending at or before the current virtual clock-time.
+//        // Calling this function will never advance the clock.
         advanceTimeBy(1_000); runCurrent()
         assertThat(state).isEqualTo(2)
         log("$currentTime")
-
-        // Immediately execute all pending tasks and advance the virtual clock-time to the last delay.
-        // If new tasks are scheduled due to advancing virtual time, they will be executed before
-        // `advanceUntilIdle` returns.
+//
+//        // Immediately execute all pending tasks and advance the virtual clock-time to the last delay.
+//        // If new tasks are scheduled due to advancing virtual time, they will be executed before
+//        // `advanceUntilIdle` returns.
         advanceUntilIdle()
         assertThat(state).isEqualTo(4)
         log("$currentTime")
@@ -118,6 +119,10 @@ class VirtualTimeControlTest {
 
         // How to make the test pass?
 //        TODO()
+//        delay(1)
+//        runCurrent()
+//        advanceTimeBy(1)
+        advanceUntilIdle()
 
         assertThat(list).containsExactly(42, 777)
     }

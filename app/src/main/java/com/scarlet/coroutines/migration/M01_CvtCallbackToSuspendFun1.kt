@@ -3,6 +3,9 @@ package com.scarlet.coroutines.migration
 import com.scarlet.util.log
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 // Callback
 private interface AsyncCallback {
@@ -43,12 +46,24 @@ object CvtToSuspendingFunction_Demo1 {
     /*
      * Use `resume/resumeWithException` or `resumeWith` only
      */
-    private suspend fun getData(status: Boolean = true): String = TODO()
+    private suspend fun getData(status: Boolean = true): String = suspendCoroutine { continuation ->
+        // Simulate a long running task
+//        if (status) {
+//            continuation.resume("Congratulations!")
+//        } else {
+//            continuation.resumeWithException(IOException("Network failure"))
+//        }
+        if (status) {
+            continuation.resumeWith(Result.success("Congratulations!"))
+        } else {
+            continuation.resumeWith(Result.failure(IOException("Network failure")))
+        }
+    }
 
     @JvmStatic
     fun main(args: Array<String>) = runBlocking<Unit> {
-        method1() // for success case
-        method1(false) // for error case
+//        method1() // for success case
+//        method1(false) // for error case
 
         method2() // for success case
         method2(false) // for error case

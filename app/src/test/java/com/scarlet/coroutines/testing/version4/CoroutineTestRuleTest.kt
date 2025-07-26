@@ -52,7 +52,7 @@ class CoroutineTestRuleTest {
     @Test
     fun `test fun creating new coroutines`() = runTest {
         // Given
-        viewModel = ArticleViewModel(apiService /* TODO */)
+        viewModel = ArticleViewModel(apiService, coroutineRule.testDispatcherProvider)
 
         // When
         viewModel.onButtonClicked()

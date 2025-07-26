@@ -13,7 +13,7 @@ object Dependency_Between_Jobs {
             log("See when I am printed ...")
             delay(100)
             log("Pong")
-        }
+        }.onCompletion("first job")
 
         delay(500)
 
@@ -21,12 +21,12 @@ object Dependency_Between_Jobs {
             log("Ping")
             job.join()
             log("Ping")
-        }
+        }.onCompletion("second job")
     }
 }
 
 //
-//              Top-level Coroutine
+//              Top-level Coroutine (by runBlocking)
 //                       |
 //              +--------+--------+
 //              |                 |

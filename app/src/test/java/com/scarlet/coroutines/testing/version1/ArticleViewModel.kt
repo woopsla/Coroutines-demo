@@ -9,6 +9,7 @@ import kotlinx.coroutines.*
 class ArticleViewModel(
     private val apiService: ApiService,
     // TODO() - Add a coroutine dispatcher
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val scope = CoroutineScope(SupervisorJob())
@@ -18,7 +19,7 @@ class ArticleViewModel(
         get() = _articles
 
     fun onButtonClicked() {
-        scope.launch {
+        scope.launch(dispatcher) {
             loadData()
         }
     }

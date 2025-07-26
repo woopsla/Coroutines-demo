@@ -90,7 +90,7 @@ object SupervisorJob_Child_Failure_SimpleDemo {
         coroutineContext.job.onCompletion("runBlocking")
 
         // What if change to Job()
-        val scope = CoroutineScope(SupervisorJob())
+        val scope = CoroutineScope(Job())
 
         val child1 = scope.launch {
             log("child1 started")

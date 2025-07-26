@@ -4,6 +4,7 @@ import com.scarlet.util.coroutineInfo
 import com.scarlet.util.log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.swing.Swing
 import java.util.concurrent.Executors
 import kotlin.random.Random
 
@@ -23,7 +24,7 @@ object Dispatchers_Main_Failure_Demo {
 
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
-        val scope = CoroutineScope(Job() + Dispatchers.Main)
+        val scope = CoroutineScope(Job() + Dispatchers.Swing)
 
         scope.launch {
             log("Hello from child coroutine")
@@ -113,7 +114,7 @@ object ThreadSharing_Demo {
  * Nested coroutines launched in this dispatcher form an event-loop to avoid stack
  * overflows.
  */
-object Unconfined_Dispatchers_Demo {
+object Unconfined_Dispatchers_Demo { // Eager
 
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {

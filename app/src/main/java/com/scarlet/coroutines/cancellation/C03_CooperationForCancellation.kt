@@ -14,7 +14,11 @@ object UnCooperative_vs_Cooperative_Cancellation {
     private suspend fun printTwice() = withContext(Dispatchers.Default) {
         val startTime = System.currentTimeMillis()
         var nextPrintTime = startTime
+//        while (isActive) {
         while (true) {
+//            ensureActive()
+//            yield()
+//            delay(1)
             if (System.currentTimeMillis() >= nextPrintTime) {
                 log("I'm working..")
                 nextPrintTime += 500

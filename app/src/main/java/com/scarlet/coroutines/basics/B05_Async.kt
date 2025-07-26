@@ -40,11 +40,11 @@ object Async_Demo2 {
             log("\tRequest user with Id A001")
             getUser("A001")
         }
-
         log("Waiting for results ...")
         val user = deferred.await()
         log("Returned user = $user")
 
         log("Done")
+
     }
 }
